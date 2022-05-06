@@ -1,0 +1,63 @@
+{
+  "name": "abacl",
+  "version": "1.0.3",
+  "description": "Attribute Based Access Control Library (ABAC-L)",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "test:debug": "jest --watch",
+    "doc": "typedoc --out docs src/",
+    "build": "tsc -p ./tsconfig.json",
+    "check": "npm run lint && npm run format",
+    "fresh": "npm run check && npm run clean",
+    "lint": "eslint . '*/**/*.{js,ts}' --quiet --fix",
+    "format": "prettier --write \"(src|test)/**/*.(ts|js)\"",
+    "debug": "node -r ts-node/register --inspect src/index.ts",
+    "clean": "rm -rf ./lib && rm -rf ./docs && npm run doc && npm run test",
+    "test": "jest && make-coverage-badge --report-path docs/coverage/coverage-summary.json --output-path coverage-badge.svg"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vhidvz/abacl.git"
+  },
+  "author": "Vahid V. <vhid.vz@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vhidvz/abacl/issues"
+  },
+  "keywords": [
+    "bpm",
+    "bpmn",
+    "flow",
+    "engine",
+    "process",
+    "workflow",
+    "bpm-engine",
+    "bpmn-engine",
+    "workflow-engine",
+    "workflow-engine-bpmn"
+  ],
+  "homepage": "https://github.com/vhidvz/abacl#readme",
+  "devDependencies": {
+    "@types/jest": "^27.5.0",
+    "@typescript-eslint/eslint-plugin": "^5.22.0",
+    "@typescript-eslint/parser": "^5.22.0",
+    "eslint": "^8.14.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "jest": "^28.0.3",
+    "make-coverage-badge": "^1.2.0",
+    "prettier": "^2.6.2",
+    "ts-jest": "^28.0.1",
+    "ts-node": "^10.7.0",
+    "typedoc": "^0.22.15",
+    "typescript": "^4.6.4"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "/lib"
+  ]
+}
