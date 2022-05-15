@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
     "target": "es5",
     "sourceMap": true,
+    "baseUrl": "./src",
     "declaration": true,
     "module": "commonjs",
     "esModuleInterop": true,

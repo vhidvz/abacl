@@ -26,16 +26,11 @@
     "url": "https://github.com/vhidvz/abacl/issues"
   },
   "keywords": [
-    "bpm",
-    "bpmn",
-    "flow",
-    "engine",
-    "process",
-    "workflow",
-    "bpm-engine",
-    "bpmn-engine",
-    "workflow-engine",
-    "workflow-engine-bpmn"
+    "abac",
+    "access-control",
+    "authentication",
+    "attribute-based",
+    "attribute-based-access-control"
   ],
   "homepage": "https://github.com/vhidvz/abacl#readme",
   "devDependencies": {
