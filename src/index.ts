@@ -272,12 +272,17 @@ export default class AccessControl {
       role,
       action: ability.action,
       subject: ability.subject,
+      /* A function that takes two parameters, data and to_plain. The data parameter is of type T,
+      which is a generic type. The to_plain parameter is of type boolean and has a default value of
+      false. The function returns a Partial<T> or Partial<T>[] */
       field<T = unknown | unknown[]>(data: T, to_plain = false): Partial<T> | Partial<T>[] {
         return filterByNotation<T>(data, ability.field ?? ['*'], to_plain);
       },
+      /* Filtering the data based on the ability.filter notation. */
       filter<T = unknown | unknown[]>(data: T, to_plain = false): Partial<T> | Partial<T>[] {
         return filterByNotation<T>(data, ability.filter ?? ['*'], to_plain);
       },
+      /* Checking if the ip address is in the subnet or not. */
       environments(ip: string, strict = true): boolean {
         const environments = ability.environments ?? [];
         if (!strict && !environments.length) return true;
@@ -288,6 +293,7 @@ export default class AccessControl {
           ) || environments.includes(ip)
         );
       },
+      /* Checking if the current date is within the availability of the ability. */
       availabilities(available?: { date?: Date; tz?: string }, strict = true): boolean {
         const availabilities = ability.availabilities ?? [];
         if (!strict && !availabilities.length) return true;
