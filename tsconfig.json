@@ -9,7 +9,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "types": ["node", "jest"],
-    "removeComments": true,
+    "removeComments": false,
     "outDir": "./lib",
     "strict": true
   },
