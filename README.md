@@ -7,7 +7,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=abacl&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=abacl)
 [![Build, Test and Publish](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml/badge.svg)](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml)
 
-The Attribute Based Access Control Library (abacl) let you to define five `can` access ability for each user:
+The Attribute Based Access Control Library (abacl) let you define five `can` access ability for each user:
 
 - Who can? the answer is `role` - Like RBAC a user can have roles.
 - How can it? the answer is `action` - You can define `any` actions you want (scoped actions are supported).
@@ -25,7 +25,7 @@ npm install --save abacl
 
 ### Usage
 
-Define your user abilities as a json array, then you can store it in your database:
+Define your user abilities as a json array, therefore you can store it in your database:
 
 ```ts
 import AccessControl, { AccessAbility } from 'abacl';
