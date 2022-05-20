@@ -6,7 +6,7 @@
 [![Coverage](https://raw.githubusercontent.com/vhidvz/abacl/master/coverage-badge.svg)](https://htmlpreview.github.io/?https://github.com/vhidvz/abacl/blob/master/docs/coverage/lcov-report/index.html)
 [![Build, Test and Publish](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml/badge.svg)](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml)
 
-The Attribute Based Access Control Library (abacl) let you define five `can` access ability for each user:
+The Attribute Based Access Control Library (abacl) let you define five `can` access ability:
 
 - Who can? the answer is `role` - Like RBAC a user can have roles.
 - How can it? the answer is `action` - You can define `any` actions you want (scoped).
