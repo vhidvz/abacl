@@ -4,14 +4,13 @@
 [![GitHub](https://img.shields.io/github/license/vhidvz/abacl?style=flat)](https://vhidvz.github.io/abacl/)
 ![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/vhidvz/abacl)
 [![Coverage](https://raw.githubusercontent.com/vhidvz/abacl/master/coverage-badge.svg)](https://htmlpreview.github.io/?https://github.com/vhidvz/abacl/blob/master/docs/coverage/lcov-report/index.html)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=abacl&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=abacl)
 [![Build, Test and Publish](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml/badge.svg)](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml)
 
 The Attribute Based Access Control Library (abacl) let you define five `can` access ability for each user:
 
 - Who can? the answer is `role` - Like RBAC a user can have roles.
-- How can it? the answer is `action` - You can define `any` actions you want (scoped actions are supported).
-- What can? the answer is `subject` - You can define `all` subjects you want (scoped subjects are supported).
+- How can it? the answer is `action` - You can define `any` actions you want (scoped).
+- What can? the answer is `subject` - You can define `all` subjects you want (scoped).
 - Where can? the answer is `location` - With IP and CIDR you can find the location of users.
 - When can it? the answer is `time` - Subject availabilities with cron expression and a duration.
 
