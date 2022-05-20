@@ -16,13 +16,13 @@ const { Notation } = require('notation');
  * @property {string | 'any'} action - The action that the user is trying to perform.
  * @property {string | 'all'} subject - The subject of the permission. This can be a string or the
  * special value 'all'.
- * @property {string[]} field - The field that the user can access.
- * @property {string[]} filter - A list of filters that can be used to filter the data.
- * @property {string[]} environments - IP addresses or CIDR ranges that the rule applies to.
+ * @property {string[]} field - The field filters that can be used to filter the user input data.
+ * @property {string[]} filter - A list of filters that can be used to filter the output data.
+ * @property {string[]} location - IP addresses or CIDR ranges that the rule applies to.
  * @property {{
- *     expression: string; // start cron expression
+ *     cron_exp: string; // start cron cron_exp
  *     duration: number; // in seconds
- *   }[]} availabilities - This is an array of objects that contain a cron expression and a duration.
+ *   }[]} time - This is an array of objects that contain a cron expression and a duration.
  * The cron expression is used to determine when the ability is available. The duration is used to
  * determine how long the ability is available.
  */
@@ -32,9 +32,9 @@ export type AccessAbility = {
   subject: string | 'all'; // scoped by separator
   field?: string[]; // does not affect on grant or deny permission
   filter?: string[]; // does not affect on grant or deny permission
-  environments?: string[]; // ip or cidr
-  availabilities?: {
-    expression: string; // start cron expression
+  location?: string[]; // ip or cidr
+  time?: {
+    cron_exp: string; // start cron expression
     duration: number; // in seconds
   }[];
 };
@@ -116,14 +116,14 @@ export class Permission {
    *
    * @returns The grant object that matches the pattern.
    */
-  public get(pattern?: string): Grant {
+  public grant(pattern?: string): Grant {
     if (!pattern) pattern = '.*';
     if (!this.has(pattern)) throw new Error(`No grant found for pattern ${pattern}`);
     return this.grants[Object.keys(this.grants).find((k) => RegExp(pattern ?? '.*').test(k)) ?? pattern];
   }
 
   /**
-   * It returns true if the object has any property
+   * It returns true if the user has the any action
    *
    * @returns A boolean value.
    */
@@ -132,7 +132,7 @@ export class Permission {
   }
 
   /**
-   * It returns true if the user has the permission '*:all'
+   * It returns true if the user has the all subject
    *
    * @returns A boolean value.
    */
@@ -145,17 +145,14 @@ export class Permission {
  * `Grant` is an object with a bunch of properties that are functions.
  *
  * @property {string} role - The role that the grant is for.
- * @property {string | 'any'} action - The action that the user is trying to perform.
- * @property {string | 'all'} subject - The subject of the grant. This can be a string or the string
- * 'all'.
- * @property field - This is a function that takes in the data and returns a partial of the data.
- * @property filter - This is a function that will be called on the data that is being returned. It
- * will be called with the data that is being returned and a boolean that indicates whether the data is
- * being returned to the client or not. If the data is being returned to the client, the boolean will
- * be true.
- * @property environments - (ip: string, strict?: boolean) => boolean;
- * @property availabilities - A function that takes in an object with a date and timezone and returns a
- * boolean.
+ * @property {string | 'any'} action - The action that the user has it.
+ * @property {string | 'all'} subject - The subject of the user has it.
+ * @property field - This is a function that takes input data and returns a partial of the data.
+ * @property filter - This is a function that will be called on the data that is being returned.
+ * @property location - This is a function that takes an IP address and returns a boolean based
+ * on location constraints defined already by the IP and CIDRs.
+ * @property time - A function that takes in an object with a date and timezone and returns a
+ * boolean based on the user time availabilities.
  */
 export type Grant = {
   role: string;
@@ -166,9 +163,9 @@ export type Grant = {
   /* A function that takes in a data object and returns a partial of the data. */
   filter: <T = unknown | unknown[]>(data: T, to_plain?: boolean) => Partial<T> | Partial<T>[];
   /* A function that takes in an IP address and returns a boolean. */
-  environments: (ip: string, strict?: boolean) => boolean;
+  location: (ip: string, strict?: boolean) => boolean;
   /* A function that takes in an object with a date and timezone and returns a boolean. */
-  availabilities: (available?: { date?: Date; tz?: string }, strict?: boolean) => boolean;
+  time: (available?: { date?: Date; tz?: string }, strict?: boolean) => boolean;
 };
 
 /**
@@ -180,11 +177,7 @@ export type PermissionGrant = {
   [key: string]: Grant;
 };
 
-/* If the user has any role that grants access to any action on any subject, or any role that grants
-access to the given action on any subject, or any role that grants access to any action on the given
-subject, or any role that grants access to the given action on the given subject, then return a
-permission object with the granted flag set to true and the grants object set to the union of all
-grants for the given action and subject */
+/* The Attribute-Based Access Control Class */
 export default class AccessControl {
   private _avj: Ajv;
   private _sep: string;
@@ -203,16 +196,16 @@ export default class AccessControl {
       subject: { type: 'string', minLength: 1 },
       field: { type: 'array', items: { type: 'string' } },
       filter: { type: 'array', items: { type: 'string' } },
-      environments: { type: 'array', items: { type: 'string', format: 'environment' } },
-      availabilities: {
+      location: { type: 'array', items: { type: 'string', format: 'ip_cidr' } },
+      time: {
         type: 'array',
         items: {
           type: 'object',
           properties: {
-            expression: { type: 'string', format: 'cron' },
+            cron_exp: { type: 'string', format: 'cron' },
             duration: { type: 'number' },
           },
-          required: ['expression', 'duration'],
+          required: ['cron_exp', 'duration'],
         },
       },
     },
@@ -228,14 +221,14 @@ export default class AccessControl {
    * AccessAbilityList object
    *
    * @param {AccessAbility[]} acl - AccessAbility[]
-   * @param [sep=:] - The separator used to separate the environment from the action.
+   * @param [sep=:] - The separator used to separate the scoped action and subject's.
    */
   constructor(acl: AccessAbility[], sep = ':') {
     this._acl = {};
     this._sep = sep;
     this._avj = new Ajv();
 
-    this._avj.addFormat('environment', {
+    this._avj.addFormat('ip_cidr', {
       type: 'string',
       validate: (env: string) => IP({ exact: true }).test(env) || CIDR({ exact: true }).test(env),
     });
@@ -253,8 +246,6 @@ export default class AccessControl {
    * It takes an AccessAbility object and adds it to the ACL
    *
    * @param {AccessAbility} ability - AccessAbility
-   *
-   * @returns The return value is a function that takes in a string and returns a boolean.
    */
   public update(ability: AccessAbility): void {
     const sep = this._sep;
@@ -283,33 +274,40 @@ export default class AccessControl {
         return filterByNotation<T>(data, ability.filter ?? ['*'], to_plain);
       },
       /* Checking if the ip address is in the subnet or not. */
-      environments(ip: string, strict = true): boolean {
-        const environments = ability.environments ?? [];
-        if (!strict && !environments.length) return true;
+      location(ip: string, strict = true): boolean {
+        const location = ability.location ?? [];
+        if (!strict && !location.length) return true;
         return (
           isInSubnet(
             ip,
-            environments.filter((e) => CIDR().test(e)),
-          ) || environments.includes(ip)
+            location.filter((e) => CIDR().test(e)),
+          ) || location.includes(ip)
         );
       },
       /* Checking if the current date is within the availability of the ability. */
-      availabilities(available?: { date?: Date; tz?: string }, strict = true): boolean {
-        const availabilities = ability.availabilities ?? [];
-        if (!strict && !availabilities.length) return true;
+      time(available?: { date?: Date; tz?: string }, strict = true): boolean {
+        const time = ability.time ?? [];
+        if (!strict && !time.length) return true;
 
         const options = {
           currentDate: available?.date ?? new Date(),
         };
         if (available?.tz) Object.assign(options, { tz: available.tz });
 
-        function check({ expression, duration }: { expression: string; duration: number }): boolean {
-          const prevDate = parser.parseExpression(expression, options).prev();
+        /**
+         * It checks if the current date is between the previous date and the next date of cron expression.
+         *
+         * @param  - cron_exp: string;
+         *
+         * @returns A boolean value
+         */
+        function check({ cron_exp, duration }: { cron_exp: string; duration: number }): boolean {
+          const prevDate = parser.parseExpression(cron_exp, options).prev();
           const nextDate = new Date(prevDate.getTime() + duration * 1000);
           return options.currentDate >= prevDate.toDate() && options.currentDate < nextDate;
         }
 
-        return availabilities.some(check);
+        return time.some(check);
       },
     };
   }
@@ -329,16 +327,12 @@ export default class AccessControl {
   }
 
   /**
-   * > If the user has any role that grants access to any action on any subject, or any role that
-   * grants access to the given action on any subject, or any role that grants access to any action on
-   * the given subject, or any role that grants access to the given action on the given subject, then
-   * return a permission object with the granted flag set to true and the grants object set to the
-   * union of all grants for the given action and subject
+   * check user access ability
    *
-   * @param {string[]} roles - string[] - An array of roles to check for.
+   * @param {string[]} roles - string[] - An array of user roles.
    * @param {string} action - The action you want to perform.
    * @param {string} subject - The subject of the permission.
-   * @param [callable] - A function that takes a Permission object and returns a boolean.
+   * @param [callable] - A function that takes a Permission object and returns a boolean that effect on grant.
    *
    * @returns A Permission object
    */

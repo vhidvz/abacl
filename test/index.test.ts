@@ -21,11 +21,11 @@ const acl: AccessAbility[] = [
     action: 'create:own',
     subject: 'article',
     field: ['*', '!owner'],
-    environments: ['127.0.0.1', '192.168.1.0/24'],
-    availabilities: [
+    location: ['127.0.0.1', '192.168.1.0/24'],
+    time: [
       {
-        expression: '* * 16 * * 1-5',
-        duration: 8 * 60 * 60,
+        cron_exp: '* * 8 * * *',
+        duration: 10 * 60 * 60,
       },
     ],
   },
@@ -102,8 +102,8 @@ describe('test access control', () => {
               subject: 'all',
               field: expect.any(Function),
               filter: expect.any(Function),
-              environments: expect.any(Function),
-              availabilities: expect.any(Function),
+              location: expect.any(Function),
+              time: expect.any(Function),
             }),
           }),
         );
@@ -123,17 +123,17 @@ describe('test access control', () => {
     const ac = new AccessControl(acl);
     const permission = ac.can(['user'], 'read', 'article');
 
-    expect(permission.get()).toBeDefined();
-    expect(permission.get('own')).toBeDefined();
-    expect(permission.get('own:.*')).toBeDefined();
-    expect(permission.get('own:all')).toBeDefined();
-    expect(permission.get('shared')).toBeDefined();
-    expect(permission.get('shared:.*')).toBeDefined();
-    expect(permission.get('shared:all')).toBeDefined();
+    expect(permission.grant()).toBeDefined();
+    expect(permission.grant('own')).toBeDefined();
+    expect(permission.grant('own:.*')).toBeDefined();
+    expect(permission.grant('own:all')).toBeDefined();
+    expect(permission.grant('shared')).toBeDefined();
+    expect(permission.grant('shared:.*')).toBeDefined();
+    expect(permission.grant('shared:all')).toBeDefined();
 
-    expect(() => permission.get('share:any')).toThrowError();
+    expect(() => permission.grant('share:any')).toThrowError();
 
-    const grantOwn = permission.get('own');
+    const grantOwn = permission.grant('own');
     expect(grantOwn).toStrictEqual(
       expect.objectContaining({
         role: 'user',
@@ -142,7 +142,7 @@ describe('test access control', () => {
       }),
     );
 
-    const grantShared = permission.get('shared');
+    const grantShared = permission.grant('shared');
     expect(grantShared).toStrictEqual(
       expect.objectContaining({
         role: 'user',
@@ -164,7 +164,7 @@ describe('test access control', () => {
 
     // check field filtering for user article creation
     const permissionCreate = ac.can(['user'], 'create', 'article');
-    const fieldedArticle = permissionCreate.get()?.field(article);
+    const fieldedArticle = permissionCreate.grant().field(article);
 
     expect(fieldedArticle).not.toStrictEqual(
       expect.objectContaining({
@@ -182,7 +182,7 @@ describe('test access control', () => {
 
     // check filter filtering for user article reading
     const permissionRead = ac.can(['user'], 'read', 'article');
-    const filteredArticle = permissionRead.get('shared')?.filter(article);
+    const filteredArticle = permissionRead.grant('shared').filter(article);
 
     expect(filteredArticle).not.toStrictEqual(
       expect.objectContaining({
@@ -199,45 +199,45 @@ describe('test access control', () => {
     );
   });
 
-  it('should check environments', () => {
+  it('should check location', () => {
     const ac = new AccessControl(acl);
 
     const permission = ac.can(['user'], 'create', 'article', (perm) => {
-      return perm.get().environments('127.0.0.1');
+      return perm.grant().location('127.0.0.1');
     });
 
     expect(permission.granted).toBeTruthy();
-    expect(permission.get().environments('192.168.2.1')).toBeFalsy();
-    expect(permission.get().environments('192.168.1.100')).toBeTruthy();
-    expect(permission.get().environments('192.168.1.200')).toBeTruthy();
+    expect(permission.grant().location('192.168.2.1')).toBeFalsy();
+    expect(permission.grant().location('192.168.1.100')).toBeTruthy();
+    expect(permission.grant().location('192.168.1.200')).toBeTruthy();
 
     expect(
       ac.can(['user'], 'create', 'article', (perm) => {
-        return perm.get().environments('192.168.2.100');
+        return perm.grant().location('192.168.2.100');
       }).granted,
     ).toBeFalsy();
 
     expect(
       ac.can(['user'], 'read', 'article', (perm) => {
-        return perm.get().environments('192.168.2.100');
+        return perm.grant().location('192.168.2.100');
       }).granted,
     ).toBeFalsy();
 
     expect(
       ac.can(['user'], 'read', 'article', (perm) => {
-        return perm.get().environments('192.168.2.100', false);
+        return perm.grant().location('192.168.2.100', false);
       }).granted,
     ).toBeTruthy();
   });
 
-  it('should check availabilities', () => {
+  it('should check time', () => {
     const ac = new AccessControl(acl);
 
     const permission = ac.can(['user'], 'create', 'article', (perm) => {
-      return perm.get().availabilities();
+      return perm.grant().time();
     });
 
     expect(permission.granted).toBeTruthy();
-    expect(permission.get().availabilities()).toBeTruthy();
+    expect(permission.grant().time()).toBeTruthy();
   });
 });
