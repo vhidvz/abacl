@@ -147,6 +147,12 @@ if (permission.granted) {
 
 ```
 
-# License
+## Thanks a lot
+
+[accesscontrol](https://www.npmjs.com/package/accesscontrol) - Role and Attribute based Access Control for Node.js
+
+[CASL](https://casl.js.org/) is an isomorphic authorization JavaScript library which restricts what resources a given user is allowed to access.
+
+## License
 
 [MIT](https://github.com/vhidvz/abacl/blob/master/LICENSE)
