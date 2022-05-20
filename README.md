@@ -6,7 +6,7 @@
 [![Coverage](https://raw.githubusercontent.com/vhidvz/abacl/master/coverage-badge.svg)](https://htmlpreview.github.io/?https://github.com/vhidvz/abacl/blob/master/docs/coverage/lcov-report/index.html)
 [![Build, Test and Publish](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml/badge.svg)](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml)
 
-The Attribute Based Access Control Library (abacl) let you define five `can` access ability:
+The Attribute-Based Access-Control Library let you define five `can` access ability:
 
 - Who can? the answer is `role` - Like RBAC a user can have roles.
 - How can it? the answer is `action` - You can define `any` actions you want (scoped).
@@ -27,9 +27,9 @@ npm install --save abacl
 Define your user abilities as a json array, therefore you can store it in your database:
 
 ```ts
-import AccessControl, { AccessAbility } from 'abacl';
+import { AccessAbility } from 'abacl';
 
-const abilities: AccessAbility = [
+const abilities: AccessAbility[] = [
   { // the admin ability can do `any`thing with `all` subjects
     role: 'admin',
     action: 'any',
@@ -103,11 +103,13 @@ const article = {
 Create a new access control object, then get the permission grants:
 
 ```ts
+import AccessControl from 'abacl';
+
 const ac = new AccessControl(abilities);
 const permission = ac.can([user.role], 'read', 'article');
 
 if (permission.granted) {
-  let filter = { where: {} };
+  const filter = { where: {} };
 
   if (permission.has('own')) {
     // user has read owned article objects
@@ -143,7 +145,6 @@ if (permission.granted) {
   // the `inputData` has not `owner` property
   // do something and then return results to user
 }
-
 ```
 
 ## Thanks a lot
