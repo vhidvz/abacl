@@ -24,8 +24,8 @@ const acl: AccessAbility[] = [
     location: ['127.0.0.1', '192.168.1.0/24'],
     time: [
       {
-        cron_exp: '* * 6 * * *',
-        duration: 18 * 60 * 60,
+        cron_exp: '* * 8 * * *',
+        duration: 20 * 60 * 60,
       },
     ],
   },
