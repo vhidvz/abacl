@@ -237,7 +237,7 @@ describe('test access control', () => {
       return perm.grant().time();
     });
 
-    expect(permission.granted).toBeTruthy();
-    expect(permission.grant().time()).toBeTruthy();
+    expect(permission.granted).toBeFalsy();
+    expect(permission.grant().time()).toBeFalsy();
   });
 });

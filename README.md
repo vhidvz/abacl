@@ -4,6 +4,7 @@
 [![GitHub](https://img.shields.io/github/license/vhidvz/abacl?style=flat)](https://vhidvz.github.io/abacl/)
 ![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/vhidvz/abacl)
 [![Coverage](https://raw.githubusercontent.com/vhidvz/abacl/master/coverage-badge.svg)](https://htmlpreview.github.io/?https://github.com/vhidvz/abacl/blob/master/docs/coverage/lcov-report/index.html)
+[![documentation](https://img.shields.io/badge/documentation-click_to_read-c27cf4)](https://vhidvz.github.io/abacl/)
 [![Build, Test and Publish](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml/badge.svg)](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml)
 
 The Attribute-Based Access-Control Library let you define five `can` access ability:
@@ -24,7 +25,7 @@ npm install --save abacl
 
 ### Usage
 
-Define your user abilities as a json array, therefore you can store it in your database:
+Define your user abilities as a json array, so you can store it in your database:
 
 ```ts
 import { AccessAbility } from 'abacl';
@@ -109,16 +110,13 @@ const ac = new AccessControl(abilities);
 const permission = ac.can([user.role], 'read', 'article');
 
 if (permission.granted) {
-  const filter = { where: {} };
 
   if (permission.has('own')) {
     // user has read owned article objects
-    Object.assign(filter.where, { owner: user.id });
   }
 
   if (permission.has('shared')) {
     // user can access shared article objects
-    Object.assign(filter.where, { partner: user.id });
   }
 
   // do something ...
@@ -135,6 +133,7 @@ Time and location access check example:
 import { Permission } from 'abacl';
 
 const ac = new AccessControl(abilities);
+
 const permission = ac.can([user.role], 'create', 'article', (perm: Permission) => {
   return perm.grant().location(user.ip) && perm.grant().time();
 });
