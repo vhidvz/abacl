@@ -17,6 +17,8 @@ The Attribute-Based Access-Control Library let you define five `can` access abil
 
 ## Quick Start Guide
 
+> Read more on defining `scoped` `action` and `subject` ability in this [link](https://vhidvz.github.io/blog/post-abac/).
+
 ### installation
 
 ```sh
