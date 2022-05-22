@@ -240,4 +240,11 @@ describe('test access control', () => {
     expect(permission.granted).toBeTruthy();
     expect(permission.grant().time()).toBeTruthy();
   });
+
+  it('should clear acl', () => {
+    const ac = new AccessControl(acl);
+
+    ac.clear();
+    expect(ac.can(['admin'], 'any', 'all').granted).toBeFalsy();
+  });
 });

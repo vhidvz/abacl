@@ -313,6 +313,13 @@ export default class AccessControl {
   }
 
   /**
+   * It clears the ACL
+   */
+  public clear(): void {
+    this.acl = [];
+  }
+
+  /**
    * > If the ACL is valid, update the ACL
    *
    * @param {AccessAbility[]} acl - AccessAbility[] - an array of AccessAbility objects
@@ -320,6 +327,8 @@ export default class AccessControl {
   protected set acl(acl: AccessAbility[]) {
     const valid = acl.reduce((prev, curr) => this.validate(curr) && prev, true);
     if (!valid) throw new Error(`Invalid ACL: ${this._avj.errorsText()}`);
+
+    if (!acl.length) this._acl = {};
 
     for (const ability of acl) {
       this.update(ability);
