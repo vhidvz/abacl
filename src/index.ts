@@ -14,7 +14,7 @@ const { Notation } = require('notation');
  *
  * @property {string} role - The role that the ability is for.
  * @property {string | 'any'} action - The action that the user is trying to perform.
- * @property {string | 'all'} subject - The subject of the permission. This can be a string or the
+ * @property {string | 'all'} object - The object of the permission. This can be a string or the
  * special value 'all'.
  * @property {string[]} field - The field filters that can be used to filter the user input data.
  * @property {string[]} filter - A list of filters that can be used to filter the output data.
@@ -29,7 +29,7 @@ const { Notation } = require('notation');
 export type AccessAbility = {
   role: string;
   action: string | 'any'; // scoped by separator
-  subject: string | 'all'; // scoped by separator
+  object: string | 'all'; // scoped by separator
   field?: string[]; // does not affect on grant or deny permission
   filter?: string[]; // does not affect on grant or deny permission
   location?: string[]; // ip or cidr
@@ -132,7 +132,7 @@ export class Permission {
   }
 
   /**
-   * It returns true if the user has the all subject
+   * It returns true if the user has the all object
    *
    * @returns A boolean value.
    */
@@ -146,7 +146,7 @@ export class Permission {
  *
  * @property {string} role - The role that the grant is for.
  * @property {string | 'any'} action - The action that the user has it.
- * @property {string | 'all'} subject - The subject of the user has it.
+ * @property {string | 'all'} object - The object of the user has it.
  * @property field - This is a function that takes input data and returns a partial of the data.
  * @property filter - This is a function that will be called on the data that is being returned.
  * @property location - This is a function that takes an IP address and returns a boolean based
@@ -157,7 +157,7 @@ export class Permission {
 export type Grant = {
   role: string;
   action: string | 'any';
-  subject: string | 'all';
+  object: string | 'all';
   /* A function that takes in the data and returns a partial of the data. */
   field: <T = unknown | unknown[]>(data: T, to_plain?: boolean) => Partial<T> | Partial<T>[];
   /* A function that takes in a data object and returns a partial of the data. */
@@ -193,7 +193,7 @@ export default class AccessControl {
     properties: {
       role: { type: 'string', minLength: 1 },
       action: { type: 'string', minLength: 1 },
-      subject: { type: 'string', minLength: 1 },
+      object: { type: 'string', minLength: 1 },
       field: { type: 'array', items: { type: 'string' } },
       filter: { type: 'array', items: { type: 'string' } },
       location: { type: 'array', items: { type: 'string', format: 'ip_cidr' } },
@@ -209,7 +209,7 @@ export default class AccessControl {
         },
       },
     },
-    required: ['role', 'action', 'subject'],
+    required: ['role', 'action', 'object'],
     additionalProperties: false,
   };
 
@@ -221,7 +221,7 @@ export default class AccessControl {
    * AccessAbilityList object
    *
    * @param {AccessAbility[]} acl - AccessAbility[]
-   * @param [sep=:] - The separator used to separate the scoped action and subject's.
+   * @param [sep=:] - The separator used to separate the scoped action and object's.
    */
   constructor(acl: AccessAbility[], sep = ':') {
     this._acl = {};
@@ -252,17 +252,17 @@ export default class AccessControl {
 
     const role = ability.role;
     const action = ability.action.split(sep);
-    const subject = ability.subject.split(sep);
+    const object = ability.object.split(sep);
 
-    const superKey = `${role}${sep}${action[0]}${sep}${subject[0]}`;
-    const scopeKey = `${action[1] ?? 'any'}${sep}${subject[1] ?? 'all'}`;
+    const superKey = `${role}${sep}${action[0]}${sep}${object[0]}`;
+    const scopeKey = `${action[1] ?? 'any'}${sep}${object[1] ?? 'all'}`;
 
     if (!this._acl[superKey]) this._acl[superKey] = {};
 
     this._acl[superKey][scopeKey] = {
       role,
       action: ability.action,
-      subject: ability.subject,
+      object: ability.object,
       /* A function that takes two parameters, data and to_plain. The data parameter is of type T,
       which is a generic type. The to_plain parameter is of type boolean and has a default value of
       false. The function returns a Partial<T> or Partial<T>[] */
@@ -340,16 +340,16 @@ export default class AccessControl {
    *
    * @param {string[]} roles - string[] - An array of user roles.
    * @param {string} action - The action you want to perform.
-   * @param {string} subject - The subject of the permission.
+   * @param {string} object - The object of the permission.
    * @param [callable] - A function that takes a Permission object and returns a boolean that effect on grant.
    *
    * @returns A Permission object
    */
-  public can(roles: string[], action: string, subject: string, callable?: (perm: Permission) => boolean): Permission {
+  public can(roles: string[], action: string, object: string, callable?: (perm: Permission) => boolean): Permission {
     const sep = this._sep;
 
     const _action = action.split(sep);
-    const _subject = subject.split(sep);
+    const _subject = object.split(sep);
 
     const hasAny = roles.some((r) => Object.keys(this._acl).some((k) => RegExp(`${r}${sep}any${sep}.*`).test(k)));
     const hasAll = roles.some((r) => Object.keys(this._acl).some((k) => RegExp(`${r}${sep}.*${sep}all`).test(k)));

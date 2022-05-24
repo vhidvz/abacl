@@ -4,22 +4,22 @@ const acl: AccessAbility[] = [
   {
     role: 'admin',
     action: 'any',
-    subject: 'all',
+    object: 'all',
   },
   {
     role: 'guest',
     action: 'read',
-    subject: 'article',
+    object: 'article',
   },
   {
     role: 'manager',
     action: 'any',
-    subject: 'article',
+    object: 'article',
   },
   {
     role: 'user',
     action: 'create:own',
-    subject: 'article',
+    object: 'article',
     field: ['*', '!owner'],
     location: ['127.0.0.1', '192.168.1.0/24'],
     time: [
@@ -32,23 +32,23 @@ const acl: AccessAbility[] = [
   {
     role: 'user',
     action: 'read:own',
-    subject: 'article',
+    object: 'article',
   },
   {
     role: 'user',
     action: 'read:shared',
-    subject: 'article',
+    object: 'article',
     filter: ['*', '!id'],
   },
   {
     role: 'user',
     action: 'delete:own',
-    subject: 'article',
+    object: 'article',
   },
   {
     role: 'user',
     action: 'update:own',
-    subject: 'article',
+    object: 'article',
     field: ['*', '!owner'],
   },
 ];
@@ -99,7 +99,7 @@ describe('test access control', () => {
             'any:all': expect.objectContaining({
               role: 'admin',
               action: 'any',
-              subject: 'all',
+              object: 'all',
               field: expect.any(Function),
               filter: expect.any(Function),
               location: expect.any(Function),
@@ -138,7 +138,7 @@ describe('test access control', () => {
       expect.objectContaining({
         role: 'user',
         action: 'read:own',
-        subject: 'article',
+        object: 'article',
       }),
     );
 
@@ -147,7 +147,7 @@ describe('test access control', () => {
       expect.objectContaining({
         role: 'user',
         action: 'read:shared',
-        subject: 'article',
+        object: 'article',
       }),
     );
   });
