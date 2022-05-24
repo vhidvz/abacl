@@ -13,7 +13,7 @@ The Attribute-Based Access-Control Library let you define five `can` access abil
 - How can it? the answer is `action` - You can define `any` actions you want (scoped).
 - What can? the answer is `object` - You can define `all` objects you want (scoped).
 - Where can? the answer is `location` - With IP and CIDR you can find the location of users.
-- When can it? the answer is `time` - Subject availabilities with cron expression and a duration.
+- When can it? the answer is `time` - objects availabilities with cron expression and a duration.
 
 ## Quick Start Guide
 
