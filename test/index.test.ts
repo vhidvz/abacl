@@ -123,6 +123,9 @@ describe('test access control', () => {
     const ac = new AccessControl(acl);
     const permission = ac.can(['user'], 'read', 'article');
 
+    expect(permission.hasAny()).toBeFalsy();
+    expect(permission.hasAll()).toBeFalsy();
+
     expect(permission.grant()).toBeDefined();
     expect(permission.grant('own')).toBeDefined();
     expect(permission.grant('own:.*')).toBeDefined();
@@ -182,6 +185,8 @@ describe('test access control', () => {
 
     // check filter filtering for user article reading
     const permissionRead = ac.can(['user'], 'read', 'article');
+
+    // filter single object
     const filteredArticle = permissionRead.grant('shared').filter(article);
 
     expect(filteredArticle).not.toStrictEqual(
@@ -196,6 +201,27 @@ describe('test access control', () => {
         title: 'title',
         content: 'content',
       }),
+    );
+
+    // filter array objects
+    const filteredArticles = permissionRead.grant('shared').filter([article]);
+
+    expect(filteredArticles).not.toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: expect.anything(),
+        }),
+      ]),
+    );
+
+    expect(filteredArticles).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          owner: 'user',
+          title: 'title',
+          content: 'content',
+        }),
+      ]),
     );
   });
 
