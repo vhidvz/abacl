@@ -123,21 +123,21 @@ export class Permission {
   }
 
   /**
-   * It returns true if the user has the any action
+   * If any of the grants have an action of 'any', return true
    *
    * @returns A boolean value.
    */
   public hasAny(): boolean {
-    return this.has('any:.*');
+    return Object.values(this.grants).some((g) => g.action === 'any');
   }
 
   /**
-   * It returns true if the user has the all object
+   * It returns true if the grants object has a grant with an object of 'all'
    *
    * @returns A boolean value.
    */
   public hasAll(): boolean {
-    return this.has('.*:all');
+    return Object.values(this.grants).some((g) => g.object === 'all');
   }
 }
 
@@ -154,10 +154,10 @@ export class Permission {
  * @property time - A function that takes in an object with a date and timezone and returns a
  * boolean based on the user time availabilities.
  */
-export type Grant = {
-  role: string;
-  action: string | 'any';
-  object: string | 'all';
+export interface Grant {
+  readonly role: string;
+  readonly action: string | 'any';
+  readonly object: string | 'all';
   /* A function that takes in the data and returns a partial of the data. */
   field: <T = unknown | unknown[]>(data: T, to_plain?: boolean) => Partial<T> | Partial<T>[];
   /* A function that takes in a data object and returns a partial of the data. */
@@ -166,7 +166,7 @@ export type Grant = {
   location: (ip: string, strict?: boolean) => boolean;
   /* A function that takes in an object with a date and timezone and returns a boolean. */
   time: (available?: { date?: Date; tz?: string }, strict?: boolean) => boolean;
-};
+}
 
 /**
  * `PermissionGrant` is an object whose keys are strings and whose values are `Grant`s.
@@ -248,6 +248,9 @@ export default class AccessControl {
    * @param {AccessAbility} ability - AccessAbility
    */
   public update(ability: AccessAbility): void {
+    const valid = this.validate(ability);
+    if (!valid) throw new Error(`Invalid ACL: ${this._avj.errorsText()}`);
+
     const sep = this._sep;
 
     const role = ability.role;
@@ -325,9 +328,6 @@ export default class AccessControl {
    * @param {AccessAbility[]} acl - AccessAbility[] - an array of AccessAbility objects
    */
   protected set acl(acl: AccessAbility[]) {
-    const valid = acl.reduce((prev, curr) => this.validate(curr) && prev, true);
-    if (!valid) throw new Error(`Invalid ACL: ${this._avj.errorsText()}`);
-
     if (!acl.length) this._acl = {};
 
     for (const ability of acl) {
