@@ -1,11 +1,12 @@
 # Attribute Based Access Control Library
 
 [![npm](https://img.shields.io/npm/v/abacl)](https://www.npmjs.com/package/abacl)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+[![Coverage](https://raw.githubusercontent.com/vhidvz/abacl/master/coverage-badge.svg)](https://htmlpreview.github.io/?https://github.com/vhidvz/abacl/blob/master/docs/coverage/lcov-report/index.html)
+![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/vhidvz/abacl)
+![npm](https://img.shields.io/npm/dm/abacl)
 [![GitHub](https://img.shields.io/github/license/vhidvz/abacl?style=flat)](https://vhidvz.github.io/abacl/)
 [![semantic-release: angular](https://img.shields.io/badge/semantic--release-nodejs-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
-![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/vhidvz/abacl)
-[![Coverage](https://raw.githubusercontent.com/vhidvz/abacl/master/coverage-badge.svg)](https://htmlpreview.github.io/?https://github.com/vhidvz/abacl/blob/master/docs/coverage/lcov-report/index.html)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![Gitter](https://badges.gitter.im/npm-abacl/community.svg)](https://gitter.im/npm-abacl/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![documentation](https://img.shields.io/badge/documentation-click_to_read-c27cf4)](https://vhidvz.github.io/abacl/)
 [![Build, Test and Publish](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml/badge.svg)](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml)
