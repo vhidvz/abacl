@@ -58,6 +58,18 @@ describe('test access control', () => {
     expect(new AccessControl(acl)).toBeDefined();
   });
 
+  it('should throw error on invalid update', () => {
+    const ac = new AccessControl([]);
+
+    expect(() =>
+      ac.update({
+        role: '',
+        action: 'r',
+        object: 'a',
+      }),
+    ).toThrowError('data/role must NOT have fewer than 1 characters');
+  });
+
   it('should check access without callable', () => {
     const ac = new AccessControl(acl);
 
