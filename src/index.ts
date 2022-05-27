@@ -249,7 +249,7 @@ export default class AccessControl {
    */
   public update(ability: AccessAbility): void {
     const valid = this.validate(ability);
-    if (!valid) throw new Error(`Invalid ACL: ${this._avj.errorsText(this.validate.errors)}`);
+    if (!valid) throw this._avj.errorsText(this.validate.errors);
 
     const sep = this._sep;
 
