@@ -349,12 +349,12 @@ export default class AccessControl {
     const sep = this._sep;
 
     const _action = action.split(sep);
-    const _subject = object.split(sep);
+    const _object = object.split(sep);
 
     const hasAny = roles.some((r) => Object.keys(this._acl).some((k) => RegExp(`${r}${sep}any${sep}.*`).test(k)));
     const hasAll = roles.some((r) => Object.keys(this._acl).some((k) => RegExp(`${r}${sep}.*${sep}all`).test(k)));
 
-    const superKeys = roles.map((r) => `${r}${sep}${hasAny ? '.*' : _action[0]}${sep}${hasAll ? '.*' : _subject[0]}`);
+    const superKeys = roles.map((r) => `${r}${sep}${hasAny ? '.*' : _action[0]}${sep}${hasAll ? '.*' : _object[0]}`);
     const scopePerm = superKeys.map((k) => this._acl[Object.keys(this._acl).find((_k) => RegExp(k).test(_k)) ?? k]);
 
     const grants = scopePerm.reduce((prev, curr) => ({ ...prev, ...curr }), {});

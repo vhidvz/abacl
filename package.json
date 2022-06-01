@@ -1,6 +1,6 @@
 {
   "name": "abacl",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Attribute Based Access Control Library",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -34,19 +34,19 @@
   ],
   "homepage": "https://github.com/vhidvz/abacl#readme",
   "devDependencies": {
-    "@types/jest": "^27.5.1",
-    "@typescript-eslint/eslint-plugin": "^5.23.0",
-    "@typescript-eslint/parser": "^5.23.0",
-    "eslint": "^8.15.0",
+    "@types/jest": "^27.5.2",
+    "@typescript-eslint/eslint-plugin": "^5.27.0",
+    "@typescript-eslint/parser": "^5.27.0",
+    "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^28.1.0",
     "make-coverage-badge": "^1.2.0",
     "prettier": "^2.6.2",
-    "ts-jest": "^28.0.2",
-    "ts-node": "^10.7.0",
-    "typedoc": "^0.22.15",
-    "typescript": "^4.6.4"
+    "ts-jest": "^28.0.3",
+    "ts-node": "^10.8.0",
+    "typedoc": "^0.22.17",
+    "typescript": "^4.7.2"
   },
   "dependencies": {
     "ajv": "^8.11.0",
@@ -56,6 +56,10 @@
     "ip-regex": "^4.3.0",
     "is-in-subnet": "^4.0.1",
     "notation": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=12.0.0",
+    "npm": ">=6.0.0"
   },
   "publishConfig": {
     "access": "public",
