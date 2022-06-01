@@ -825,10 +825,10 @@ const { Notation } = require('notation');
  * The cron expression is used to determine when the ability is available. The duration is used to
  * determine how long the ability is available.
  */
-export type AccessAbility = {
-  role: string;
-  action: string | 'any'; // scoped by separator
-  object: string | 'all'; // scoped by separator
+export type AccessAbility&lt;R = string, A = string, O = string&gt; = {
+  role: R;
+  action: A | 'any'; // scoped by separator
+  object: O | 'all'; // scoped by separator
   field?: string[]; // does not affect on grant or deny permission
   filter?: string[]; // does not affect on grant or deny permission
   location?: string[]; // ip or cidr
@@ -858,9 +858,9 @@ export function filterByNotation&lt;T = unknown | unknown[]&gt;(
 }
 &nbsp;
 /* It's a wrapper around a map of permission grants, with some convenience methods */
-export class Permission {
+export class Permission&lt;R = string, A = string, O = string&gt; {
   private readonly _granted: boolean;
-  private readonly _grants: PermissionGrant;
+  private readonly _grants: PermissionGrant&lt;R, A, O&gt;;
 &nbsp;
   /**
    * The constructor function takes two parameters, a boolean and a PermissionGrant object. It sets the
@@ -872,7 +872,7 @@ export class Permission {
    * @param {PermissionGrant} grants - PermissionGrant - This is the permission grant object that
    * contains the permissions that were requested.
    */
-  constructor(granted: boolean, grants: PermissionGrant) {
+  constructor(granted: boolean, grants: PermissionGrant&lt;R, A, O&gt;) {
     this._grants = grants;
     this._granted = granted;
   }
@@ -915,7 +915,7 @@ export class Permission {
    *
    * @returns The grant object that matches the pattern.
    */
-  public grant(pattern?: string): Grant {
+  public grant(pattern?: string): Grant&lt;R, A, O&gt; {
     if (!pattern) pattern = '.*';
     if (!this.has(pattern)) throw new Error(`No grant found for pattern ${pattern}`);
     return this.grants[Object.keys(this.grants).find((k) =&gt; RegExp(pattern<span class="branch-0 cbranch-no" title="branch not covered" > ?? '.*')</span>.test(k))<span class="branch-0 cbranch-no" title="branch not covered" > ?? pattern]</span>;
@@ -953,10 +953,10 @@ export class Permission {
  * @property time - A function that takes in an object with a date and timezone and returns a
  * boolean based on the user time availabilities.
  */
-export interface Grant {
-  readonly role: string;
-  readonly action: string | 'any';
-  readonly object: string | 'all';
+export interface Grant&lt;R = string, A = string, O = string&gt; {
+  readonly role: R;
+  readonly action: A | 'any';
+  readonly object: O | 'all';
   /* A function that takes in the data and returns a partial of the data. */
   field: &lt;T = unknown | unknown[]&gt;(data: T, to_plain?: boolean) =&gt; Partial&lt;T&gt; | Partial&lt;T&gt;[];
   /* A function that takes in a data object and returns a partial of the data. */
@@ -972,18 +972,18 @@ export interface Grant {
  *
  * @property {Grant} [key: Grant] - This is the name of the permission.
  */
-export type PermissionGrant = {
-  [key: string]: Grant;
+export type PermissionGrant&lt;R = string, A = string, O = string&gt; = {
+  [key: string]: Grant&lt;R, A, O&gt;;
 };
 &nbsp;
 /* The Attribute-Based Access Control Class */
-export default class AccessControl {
+export default class AccessControl&lt;R = string, A = string, O = string&gt; {
   private _avj: Ajv;
   private _sep: string;
 &nbsp;
   /* A private property that is used to store the ACL. */
   private _acl: {
-    [key: string]: PermissionGrant;
+    [key: string]: PermissionGrant&lt;R, A, O&gt;;
   };
 &nbsp;
   /* A JSON schema that is used to validate the ACL. */
@@ -1062,9 +1062,9 @@ export default class AccessControl {
     if (!this._acl[superKey]) this._acl[superKey] = {};
 &nbsp;
     this._acl[superKey][scopeKey] = {
-      role,
-      action: ability.action,
-      object: ability.object,
+      role: role as unknown as R,
+      action: ability.action as unknown as A,
+      object: ability.object as unknown as O,
       /* A function that takes two parameters, data and to_plain. The data parameter is of type T,
       which is a generic type. The to_plain parameter is of type boolean and has a default value of
       false. The function returns a Partial&lt;T&gt; or Partial&lt;T&gt;[] */
@@ -1144,11 +1144,11 @@ export default class AccessControl {
    *
    * @returns A Permission object
    */
-  public can(roles: string[], action: string, object: string, callable?: (perm: Permission) =&gt; boolean): Permission {
+  public can(roles: R[], action: A, object: O, callable?: (perm: Permission&lt;R, A, O&gt;) =&gt; boolean): Permission&lt;R, A, O&gt; {
     const sep = this._sep;
 &nbsp;
-    const _action = action.split(sep);
-    const _object = object.split(sep);
+    const _action = (action as unknown as string).split(sep);
+    const _object = (object as unknown as string).split(sep);
 &nbsp;
     const hasAny = roles.some((r) =&gt; Object.keys(this._acl).some((k) =&gt; RegExp(`${r}${sep}any${sep}.*`).test(k)));
     const hasAll = roles.some((r) =&gt; Object.keys(this._acl).some((k) =&gt; RegExp(`${r}${sep}.*${sep}all`).test(k)));
@@ -1159,9 +1159,9 @@ export default class AccessControl {
     const grants = scopePerm.reduce((prev, curr) =&gt; ({ ...prev, ...curr }), {});
 &nbsp;
     let granted = !!Object.keys(grants).length || (hasAny &amp;&amp; hasAll);
-    if (callable) granted &amp;&amp;= !!callable(new Permission(granted, grants));
+    if (callable) granted &amp;&amp;= !!callable(new Permission&lt;R, A, O&gt;(granted, grants));
 &nbsp;
-    return new Permission(granted, grants);
+    return new Permission&lt;R, A, O&gt;(granted, grants);
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -1171,7 +1171,7 @@ export default class AccessControl {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at Wed Jun 01 2022 22:53:15 GMT+0430 (Iran Daylight Time)
+                at Thu Jun 02 2022 00:21:00 GMT+0430 (Iran Daylight Time)
             </div>
         <script src="prettify.js"></script>
         <script>

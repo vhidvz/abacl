@@ -38,53 +38,60 @@ Define your user abilities as a json array, so you can store it in your database
 ```ts
 import { AccessAbility } from 'abacl';
 
-const abilities: AccessAbility[] = [
-  { // the admin ability can do `any`thing with `all` objects
-    role: 'admin',
+enum Role {
+  Admin = 'admin',
+  User = 'user',
+  Guest = 'guest',
+  Manager = 'manager',
+}
+
+const acl: AccessAbility<Role>[] = [
+  {
+    role: Role.Admin,
     action: 'any',
     object: 'all',
   },
-  { // ability scoped by published articles
-    role: 'guest',
+  {
+    role: Role.Guest,
     action: 'read',
-    object: 'article:published',
+    object: 'article',
   },
-  { // the manager can to `any`thing with articles
-    role: 'manager',
+  {
+    role: Role.Manager,
     action: 'any',
     object: 'article',
   },
-  { // the user can create own articles (scoped by own)
-    role: 'user',
+  {
+    role: Role.User,
     action: 'create:own',
     object: 'article',
-    field: ['*', '!owner'], // filters the input data of the user 
+    field: ['*', '!owner'],
     location: ['127.0.0.1', '192.168.1.0/24'],
     time: [
-      { // from 8AM to 6PM
-        cron_exp: '* * 8 * * *', // every day from 8AM
-        duration: 10 * 60 * 60, // 10 hours in seconds
+      {
+        cron_exp: '* * 8 * * *',
+        duration: 20 * 60 * 60,
       },
     ],
   },
   {
-    role: 'user',
+    role: Role.User,
     action: 'read:own',
     object: 'article',
   },
-  { // the user can read shared articles without `id` properties 
-    role: 'user',
+  {
+    role: Role.User,
     action: 'read:shared',
     object: 'article',
-    filter: ['*', '!id'], // filters output data
+    filter: ['*', '!id'],
   },
   {
-    role: 'user',
+    role: Role.User,
     action: 'delete:own',
     object: 'article',
   },
   {
-    role: 'user',
+    role: Role.User,
     action: 'update:own',
     object: 'article',
     field: ['*', '!owner'],

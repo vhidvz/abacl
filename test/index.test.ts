@@ -1,23 +1,30 @@
 import AccessControl, { AccessAbility } from '../src';
 
-const acl: AccessAbility[] = [
+enum Role {
+  Admin = 'admin',
+  User = 'user',
+  Guest = 'guest',
+  Manager = 'manager',
+}
+
+const acl: AccessAbility<Role>[] = [
   {
-    role: 'admin',
+    role: Role.Admin,
     action: 'any',
     object: 'all',
   },
   {
-    role: 'guest',
+    role: Role.Guest,
     action: 'read',
     object: 'article',
   },
   {
-    role: 'manager',
+    role: Role.Manager,
     action: 'any',
     object: 'article',
   },
   {
-    role: 'user',
+    role: Role.User,
     action: 'create:own',
     object: 'article',
     field: ['*', '!owner'],
@@ -30,23 +37,23 @@ const acl: AccessAbility[] = [
     ],
   },
   {
-    role: 'user',
+    role: Role.User,
     action: 'read:own',
     object: 'article',
   },
   {
-    role: 'user',
+    role: Role.User,
     action: 'read:shared',
     object: 'article',
     filter: ['*', '!id'],
   },
   {
-    role: 'user',
+    role: Role.User,
     action: 'delete:own',
     object: 'article',
   },
   {
-    role: 'user',
+    role: Role.User,
     action: 'update:own',
     object: 'article',
     field: ['*', '!owner'],
@@ -71,31 +78,31 @@ describe('test access control', () => {
   });
 
   it('should check access without callable', () => {
-    const ac = new AccessControl(acl);
+    const ac = new AccessControl<Role>(acl);
 
     // check non scoped access without callable for admin
-    expect(ac.can(['admin'], 'any', 'all').granted).toBeTruthy();
-    expect(ac.can(['admin'], 'read', 'all').granted).toBeTruthy();
-    expect(ac.can(['admin'], 'any', 'article').granted).toBeTruthy();
-    expect(ac.can(['admin'], 'read', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.Admin], 'any', 'all').granted).toBeTruthy();
+    expect(ac.can([Role.Admin], 'read', 'all').granted).toBeTruthy();
+    expect(ac.can([Role.Admin], 'any', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.Admin], 'read', 'article').granted).toBeTruthy();
 
     // check non scoped access without callable for guest
-    expect(ac.can(['guest'], 'any', 'all').granted).toBeFalsy();
-    expect(ac.can(['guest'], 'read', 'all').granted).toBeFalsy();
-    expect(ac.can(['guest'], 'any', 'article').granted).toBeFalsy();
-    expect(ac.can(['guest'], 'read', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.Guest], 'any', 'all').granted).toBeFalsy();
+    expect(ac.can([Role.Guest], 'read', 'all').granted).toBeFalsy();
+    expect(ac.can([Role.Guest], 'any', 'article').granted).toBeFalsy();
+    expect(ac.can([Role.Guest], 'read', 'article').granted).toBeTruthy();
 
     // check non scoped access without callable for manager
-    expect(ac.can(['manager'], 'any', 'all').granted).toBeFalsy();
-    expect(ac.can(['manager'], 'read', 'all').granted).toBeFalsy();
-    expect(ac.can(['manager'], 'any', 'article').granted).toBeTruthy();
-    expect(ac.can(['manager'], 'read', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.Manager], 'any', 'all').granted).toBeFalsy();
+    expect(ac.can([Role.Manager], 'read', 'all').granted).toBeFalsy();
+    expect(ac.can([Role.Manager], 'any', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.Manager], 'read', 'article').granted).toBeTruthy();
 
     // check non scoped access without callable for user
-    expect(ac.can(['user'], 'create', 'article').granted).toBeTruthy();
-    expect(ac.can(['user'], 'read', 'article').granted).toBeTruthy();
-    expect(ac.can(['user'], 'delete', 'article').granted).toBeTruthy();
-    expect(ac.can(['user'], 'update', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.User], 'create', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.User], 'read', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.User], 'delete', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.User], 'update', 'article').granted).toBeTruthy();
   });
 
   it('should check access with callable', () => {

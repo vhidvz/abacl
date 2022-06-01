@@ -26,10 +26,10 @@ const { Notation } = require('notation');
  * The cron expression is used to determine when the ability is available. The duration is used to
  * determine how long the ability is available.
  */
-export type AccessAbility = {
-  role: string;
-  action: string | 'any'; // scoped by separator
-  object: string | 'all'; // scoped by separator
+export type AccessAbility<R = string, A = string, O = string> = {
+  role: R;
+  action: A | 'any'; // scoped by separator
+  object: O | 'all'; // scoped by separator
   field?: string[]; // does not affect on grant or deny permission
   filter?: string[]; // does not affect on grant or deny permission
   location?: string[]; // ip or cidr
@@ -59,9 +59,9 @@ export function filterByNotation<T = unknown | unknown[]>(
 }
 
 /* It's a wrapper around a map of permission grants, with some convenience methods */
-export class Permission {
+export class Permission<R = string, A = string, O = string> {
   private readonly _granted: boolean;
-  private readonly _grants: PermissionGrant;
+  private readonly _grants: PermissionGrant<R, A, O>;
 
   /**
    * The constructor function takes two parameters, a boolean and a PermissionGrant object. It sets the
@@ -73,7 +73,7 @@ export class Permission {
    * @param {PermissionGrant} grants - PermissionGrant - This is the permission grant object that
    * contains the permissions that were requested.
    */
-  constructor(granted: boolean, grants: PermissionGrant) {
+  constructor(granted: boolean, grants: PermissionGrant<R, A, O>) {
     this._grants = grants;
     this._granted = granted;
   }
@@ -116,7 +116,7 @@ export class Permission {
    *
    * @returns The grant object that matches the pattern.
    */
-  public grant(pattern?: string): Grant {
+  public grant(pattern?: string): Grant<R, A, O> {
     if (!pattern) pattern = '.*';
     if (!this.has(pattern)) throw new Error(`No grant found for pattern ${pattern}`);
     return this.grants[Object.keys(this.grants).find((k) => RegExp(pattern ?? '.*').test(k)) ?? pattern];
@@ -154,10 +154,10 @@ export class Permission {
  * @property time - A function that takes in an object with a date and timezone and returns a
  * boolean based on the user time availabilities.
  */
-export interface Grant {
-  readonly role: string;
-  readonly action: string | 'any';
-  readonly object: string | 'all';
+export interface Grant<R = string, A = string, O = string> {
+  readonly role: R;
+  readonly action: A | 'any';
+  readonly object: O | 'all';
   /* A function that takes in the data and returns a partial of the data. */
   field: <T = unknown | unknown[]>(data: T, to_plain?: boolean) => Partial<T> | Partial<T>[];
   /* A function that takes in a data object and returns a partial of the data. */
@@ -173,18 +173,18 @@ export interface Grant {
  *
  * @property {Grant} [key: Grant] - This is the name of the permission.
  */
-export type PermissionGrant = {
-  [key: string]: Grant;
+export type PermissionGrant<R = string, A = string, O = string> = {
+  [key: string]: Grant<R, A, O>;
 };
 
 /* The Attribute-Based Access Control Class */
-export default class AccessControl {
+export default class AccessControl<R = string, A = string, O = string> {
   private _avj: Ajv;
   private _sep: string;
 
   /* A private property that is used to store the ACL. */
   private _acl: {
-    [key: string]: PermissionGrant;
+    [key: string]: PermissionGrant<R, A, O>;
   };
 
   /* A JSON schema that is used to validate the ACL. */
@@ -263,9 +263,9 @@ export default class AccessControl {
     if (!this._acl[superKey]) this._acl[superKey] = {};
 
     this._acl[superKey][scopeKey] = {
-      role,
-      action: ability.action,
-      object: ability.object,
+      role: role as unknown as R,
+      action: ability.action as unknown as A,
+      object: ability.object as unknown as O,
       /* A function that takes two parameters, data and to_plain. The data parameter is of type T,
       which is a generic type. The to_plain parameter is of type boolean and has a default value of
       false. The function returns a Partial<T> or Partial<T>[] */
@@ -345,11 +345,11 @@ export default class AccessControl {
    *
    * @returns A Permission object
    */
-  public can(roles: string[], action: string, object: string, callable?: (perm: Permission) => boolean): Permission {
+  public can(roles: R[], action: A, object: O, callable?: (perm: Permission<R, A, O>) => boolean): Permission<R, A, O> {
     const sep = this._sep;
 
-    const _action = action.split(sep);
-    const _object = object.split(sep);
+    const _action = (action as unknown as string).split(sep);
+    const _object = (object as unknown as string).split(sep);
 
     const hasAny = roles.some((r) => Object.keys(this._acl).some((k) => RegExp(`${r}${sep}any${sep}.*`).test(k)));
     const hasAll = roles.some((r) => Object.keys(this._acl).some((k) => RegExp(`${r}${sep}.*${sep}all`).test(k)));
@@ -360,8 +360,8 @@ export default class AccessControl {
     const grants = scopePerm.reduce((prev, curr) => ({ ...prev, ...curr }), {});
 
     let granted = !!Object.keys(grants).length || (hasAny && hasAll);
-    if (callable) granted &&= !!callable(new Permission(granted, grants));
+    if (callable) granted &&= !!callable(new Permission<R, A, O>(granted, grants));
 
-    return new Permission(granted, grants);
+    return new Permission<R, A, O>(granted, grants);
   }
 }
