@@ -45,7 +45,7 @@ enum Role {
   Manager = 'manager',
 }
 
-const acl: AccessAbility<Role>[] = [
+const abilities: AccessAbility<Role>[] = [
   {
     role: Role.Admin,
     action: 'any',
