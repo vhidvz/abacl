@@ -1,6 +1,6 @@
 {
   "name": "abacl",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Attribute Based Access Control Library",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -34,7 +34,7 @@
   ],
   "homepage": "https://github.com/vhidvz/abacl#readme",
   "devDependencies": {
-    "@types/jest": "^27.5.2",
+    "@types/jest": "^28.1.0",
     "@typescript-eslint/eslint-plugin": "^5.27.0",
     "@typescript-eslint/parser": "^5.27.0",
     "eslint": "^8.16.0",

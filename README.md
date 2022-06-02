@@ -104,7 +104,7 @@ Article and User definition objects:
 ```ts
 const user = {
   id: 1,
-  role: 'user',
+  role: Role.User,
   ip: '192.168.1.100',
 };
 
@@ -125,7 +125,6 @@ const ac = new AccessControl(abilities);
 const permission = ac.can([user.role], 'read', 'article');
 
 if (permission.granted) {
-
   if (permission.has('own')) {
     // user has read owned article objects
   }

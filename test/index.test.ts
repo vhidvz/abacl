@@ -7,7 +7,7 @@ enum Role {
   Manager = 'manager',
 }
 
-const acl: AccessAbility<Role>[] = [
+const abilities: AccessAbility<Role>[] = [
   {
     role: Role.Admin,
     action: 'any',
@@ -62,7 +62,7 @@ const acl: AccessAbility<Role>[] = [
 
 describe('test access control', () => {
   it('should define', () => {
-    expect(new AccessControl(acl)).toBeDefined();
+    expect(new AccessControl(abilities)).toBeDefined();
   });
 
   it('should throw error on invalid update', () => {
@@ -78,7 +78,7 @@ describe('test access control', () => {
   });
 
   it('should check access without callable', () => {
-    const ac = new AccessControl<Role>(acl);
+    const ac = new AccessControl<Role>(abilities);
 
     // check non scoped access without callable for admin
     expect(ac.can([Role.Admin], 'any', 'all').granted).toBeTruthy();
@@ -106,7 +106,7 @@ describe('test access control', () => {
   });
 
   it('should check access with callable', () => {
-    const ac = new AccessControl(acl);
+    const ac = new AccessControl<string>(abilities);
 
     // check non scoped access with callable for admin
     expect(
@@ -139,7 +139,7 @@ describe('test access control', () => {
   });
 
   it('should check get grants from permission', () => {
-    const ac = new AccessControl(acl);
+    const ac = new AccessControl<string>(abilities);
     const permission = ac.can(['user'], 'read', 'article');
 
     expect(permission.hasAny()).toBeFalsy();
@@ -175,7 +175,7 @@ describe('test access control', () => {
   });
 
   it('should check filtering (field, filter)', () => {
-    const ac = new AccessControl(acl);
+    const ac = new AccessControl<string>(abilities);
 
     const article = {
       id: 1,
@@ -245,7 +245,7 @@ describe('test access control', () => {
   });
 
   it('should check location', () => {
-    const ac = new AccessControl(acl);
+    const ac = new AccessControl<string>(abilities);
 
     const permission = ac.can(['user'], 'create', 'article', (perm) => {
       return perm.grant().location('127.0.0.1');
@@ -276,7 +276,7 @@ describe('test access control', () => {
   });
 
   it('should check time', () => {
-    const ac = new AccessControl(acl);
+    const ac = new AccessControl<string>(abilities);
 
     const permission = ac.can(['user'], 'create', 'article', (perm) => {
       return perm.grant().time();
@@ -286,8 +286,8 @@ describe('test access control', () => {
     expect(permission.grant().time()).toBeTruthy();
   });
 
-  it('should clear acl', () => {
-    const ac = new AccessControl(acl);
+  it('should clear abilities', () => {
+    const ac = new AccessControl<string>(abilities);
 
     ac.clear();
     expect(ac.can(['admin'], 'any', 'all').granted).toBeFalsy();
