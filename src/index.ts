@@ -259,7 +259,7 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
         return filterByNotation<T>(data, ability.filter ?? ['*'], to_plain);
       },
       /* Checking if the IP address is in the subnet or not. */
-      location(ip: string, strict = true): boolean {
+      location(ip: string, strict = false): boolean {
         const location = ability.location ?? [];
         if (!strict && !location.length) return true;
         return (
@@ -270,7 +270,7 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
         );
       },
       /* Checking if the current date is within the availability of the `ability.time`. */
-      time(available?: { date?: Date; tz?: string }, strict = true): boolean {
+      time(available?: { date?: Date; tz?: string }, strict = false): boolean {
         const time = ability.time ?? [];
         if (!strict && !time.length) return true;
 

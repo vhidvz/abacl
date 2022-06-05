@@ -266,13 +266,13 @@ describe('test access control', () => {
       ac.can(['user'], 'read', 'article', (perm) => {
         return perm.grant().location('192.168.2.100');
       }).granted,
-    ).toBeFalsy();
+    ).toBeTruthy();
 
     expect(
       ac.can(['user'], 'read', 'article', (perm) => {
-        return perm.grant().location('192.168.2.100', false);
+        return perm.grant().location('192.168.2.100', true);
       }).granted,
-    ).toBeTruthy();
+    ).toBeFalsy();
   });
 
   it('should check time', () => {
