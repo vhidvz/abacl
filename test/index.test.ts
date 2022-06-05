@@ -32,7 +32,7 @@ const abilities: AccessAbility<Role>[] = [
     time: [
       {
         cron_exp: '* * 8 * * *',
-        duration: 20 * 60 * 60,
+        duration: 24 * 60 * 60,
       },
     ],
   },
