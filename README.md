@@ -54,7 +54,7 @@ const abilities: AccessAbility<Role>[] = [
   {
     role: Role.Guest,
     action: 'read',
-    object: 'article',
+    object: 'article:published',
   },
   {
     role: Role.Manager,
@@ -110,7 +110,7 @@ const user = {
 
 const article = {
   id: 1,
-  owner: 'user',
+  owner: 'user1',
   title: 'title',
   content: 'content',
 };
@@ -125,16 +125,24 @@ const ac = new AccessControl(abilities);
 const permission = ac.can([user.role], 'read', 'article');
 
 if (permission.granted) {
-  if (permission.has('own')) {
+  // default scope for action and object is `any` and `all`
+
+  if (permission.has('own')) { // Or pattern 'own:.*'
     // user has read owned article objects
   }
 
-  if (permission.has('shared')) {
+  if (permission.has('shared')) { // Or pattern 'shared:.*'
+    // user can access shared article objects
+  }
+
+  if (permission.has('published')) { // Or pattern '.*:published'
     // user can access shared article objects
   }
 
   // do something ...
 
+  // get grants by pattern 'shared' or 'shared:.*'
+  // pattern: [action_scoped_regex]:[object_scoped_regex]
   const response = permission.grant('shared').filter(article);
 
   // Now response has no `id` property so sent it to user
