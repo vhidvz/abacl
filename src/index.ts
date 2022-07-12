@@ -241,7 +241,7 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
    */
   public validate(ability: Ability<R, Act, Obj>): void {
     const valid = this._validate(ability);
-    if (!valid) throw this._avj.errorsText(this._validate.errors);
+    if (!valid) throw new Error(this._avj.errorsText(this._validate.errors));
   }
 
   /**
