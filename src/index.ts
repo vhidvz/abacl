@@ -212,7 +212,7 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
    * @param {Ability<R, Act, Obj>[]} abilities - An array of Ability objects.
    * @param [sep=:] - The separator used to separate the role, action, and object.
    */
-  constructor(abilities: Ability<R, Act, Obj>[], sep = ':') {
+  constructor(abilities: Ability<R, Act, Obj>[] = [], sep = ':') {
     this._sep = sep;
     this._abilities = {};
     this._avj = new Ajv();
