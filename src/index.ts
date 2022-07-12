@@ -203,8 +203,8 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
     additionalProperties: false,
   };
 
-  /* A protected property that is used to validate the abilities. */
-  protected validate: ValidateFunction;
+  /* A private property that is used to validate the abilities. */
+  private _validate: ValidateFunction;
 
   /**
    * It takes an array of Ability objects, and it sets up the validator for the schema
@@ -227,13 +227,30 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
       validate: (cron: string) => !/^(\*\s)+\*$/.test(cron) && isValidCron(cron, { seconds: true, alias: true }),
     });
 
-    this.validate = this._avj.compile(this._schema);
+    this._validate = this._avj.compile(this._schema);
     this.abilities = abilities;
   }
 
+  /**
+   * "If the ability is not valid, throw an error."
+   *
+   * The first line of the function calls the `_validate` function, which returns a boolean. If the
+   * boolean is false, the second line of the function throws an error
+   *
+   * @param ability - Ability<R, Act, Obj>
+   */
+  public validate(ability: Ability<R, Act, Obj>): void {
+    const valid = this._validate(ability);
+    if (!valid) throw this._avj.errorsText(this._validate.errors);
+  }
+
+  /**
+   * It takes in an `Ability` object and validates it, then it adds it to the `_abilities` object
+   *
+   * @param ability - Ability<R, Act, Obj>
+   */
   public update(ability: Ability<R, Act, Obj>): void {
-    const valid = this.validate(ability);
-    if (!valid) throw this._avj.errorsText(this.validate.errors);
+    this.validate(ability);
 
     const sep = this._sep;
 
