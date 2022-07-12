@@ -1,4 +1,4 @@
-import AccessControl, { AccessAbility } from '../src';
+import AccessControl, { Ability } from '../src';
 
 enum Role {
   Admin = 'admin',
@@ -7,7 +7,7 @@ enum Role {
   Manager = 'manager',
 }
 
-const abilities: AccessAbility<Role>[] = [
+const abilities: Ability<Role>[] = [
   {
     role: Role.Admin,
     action: 'any',

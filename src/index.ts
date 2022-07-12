@@ -10,7 +10,7 @@ import IP from 'ip-regex';
 const { Notation } = require('notation');
 
 /**
- * `AccessAbility` is a type that represents a single access ability.
+ * `Ability` is a type that represents a single access ability.
  *
  * @property {R} role - The role that is allowed to perform the action on the object.
  * @property {Act | 'any'} action - The action that the role is allowed to perform on the object.
@@ -26,7 +26,7 @@ const { Notation } = require('notation');
  * expression is used to determine when the access ability is valid. The duration is used to determine
  * how long the access ability is valid.
  */
-export type AccessAbility<R = string, Act = string, Obj = string> = {
+export type Ability<R = string, Act = string, Obj = string> = {
   role: R;
   action: Act | 'any'; // scoped by separator
   object: Obj | 'all'; // scoped by separator
@@ -207,12 +207,12 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
   protected validate: ValidateFunction;
 
   /**
-   * It takes an array of AccessAbility objects, and it sets up the validator for the schema
+   * It takes an array of Ability objects, and it sets up the validator for the schema
    *
-   * @param {AccessAbility<R, Act, Obj>[]} abilities - An array of AccessAbility objects.
+   * @param {Ability<R, Act, Obj>[]} abilities - An array of Ability objects.
    * @param [sep=:] - The separator used to separate the role, action, and object.
    */
-  constructor(abilities: AccessAbility<R, Act, Obj>[], sep = ':') {
+  constructor(abilities: Ability<R, Act, Obj>[], sep = ':') {
     this._sep = sep;
     this._abilities = {};
     this._avj = new Ajv();
@@ -231,7 +231,7 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
     this.abilities = abilities;
   }
 
-  public update(ability: AccessAbility<R, Act, Obj>): void {
+  public update(ability: Ability<R, Act, Obj>): void {
     const valid = this.validate(ability);
     if (!valid) throw this._avj.errorsText(this.validate.errors);
 
@@ -308,9 +308,9 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
   /**
    * It takes an array of abilities, and updates the internal abilities object with the new abilities
    *
-   * @param {AccessAbility<R, Act, Obj>[]} abilities - AccessAbility<R, Act, Obj>[]
+   * @param {Ability<R, Act, Obj>[]} abilities - Ability<R, Act, Obj>[]
    */
-  protected set abilities(abilities: AccessAbility<R, Act, Obj>[]) {
+  protected set abilities(abilities: Ability<R, Act, Obj>[]) {
     if (!abilities.length) this._abilities = {};
 
     for (const ability of abilities) {

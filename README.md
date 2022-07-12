@@ -36,7 +36,7 @@ npm install --save abacl
 Define your user abilities as a json array, so you can store it in your database:
 
 ```ts
-import { AccessAbility } from 'abacl';
+import { Ability } from 'abacl';
 
 enum Role {
   Admin = 'admin',
@@ -45,7 +45,7 @@ enum Role {
   Manager = 'manager',
 }
 
-const abilities: AccessAbility<Role>[] = [
+const abilities: Ability<Role>[] = [
   {
     role: Role.Admin,
     action: 'any',
