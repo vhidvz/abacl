@@ -353,6 +353,8 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
   ): Permission<R, Act, Obj> {
     const sep = this._sep;
 
+    if (!roles?.length) throw new Error('No roles given');
+
     const _action = (action as unknown as string).split(sep);
     const _object = (object as unknown as string).split(sep);
 
