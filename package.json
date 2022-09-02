@@ -34,7 +34,7 @@
   ],
   "homepage": "https://github.com/vhidvz/abacl#readme",
   "devDependencies": {
-    "@types/jest": "28.1.7",
+    "@types/jest": "28.1.8",
     "@typescript-eslint/eslint-plugin": "5.36.1",
     "@typescript-eslint/parser": "5.36.1",
     "eslint": "8.22.0",
