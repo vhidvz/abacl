@@ -180,6 +180,7 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
   /* A JSON schema that is used to validate the abilities. */
   private _schema: SomeJSONSchema = {
     type: 'object',
+    required: ['role', 'action', 'object'],
     properties: {
       role: { type: 'string', minLength: 1 },
       action: { type: 'string', minLength: 1 },
@@ -199,8 +200,6 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
         },
       },
     },
-    required: ['role', 'action', 'object'],
-    additionalProperties: false,
   };
 
   /* A private property that is used to validate the abilities. */
