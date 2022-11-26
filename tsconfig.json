@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES6",
+    "allowJs": true,
     "sourceMap": true,
     "baseUrl": "./src",
     "declaration": true,
-    "module": "commonjs",
+    "module": "CommonJS",
     "esModuleInterop": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "types": ["node", "jest"],
     "removeComments": false,
-    "outDir": "./lib",
+    "outDir": "./dist",
     "strict": true
   },
   "include": ["src/**/*"]

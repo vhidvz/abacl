@@ -156,11 +156,11 @@ import { Permission } from 'abacl';
 const ac = new AccessControl(abilities);
 
 const permission = ac.can([user.role], 'create', 'article', (perm: Permission) => {
-  return perm.grant().location(user.ip) && perm.grant().time();
+  return perm.grant('own').location(user.ip) && perm.grant('own').time();
 });
 
 if (permission.granted) {
-  const inputData = permission.grant().field(article);
+  const inputData = permission.grant('.*').field(article);
 
   // the `inputData` has not `owner` property
   // do something and then return results to user

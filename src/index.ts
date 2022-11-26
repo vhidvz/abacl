@@ -1,6 +1,4 @@
-import { SomeJSONSchema } from 'ajv/dist/types/json-schema';
 import { isValidCron } from 'cron-validator';
-import Ajv, { ValidateFunction } from 'ajv';
 import { isInSubnet } from 'is-in-subnet';
 import parser from 'cron-parser';
 import CIDR from 'cidr-regex';
@@ -106,7 +104,7 @@ export class Permission<R = string, Act = string, Obj = string> {
   }
 
   /**
-   * If the pattern is not provided, set it to '.*' (which matches everything). If the pattern is not
+   * If the pattern is not provided, set it to 'any:all' (which matches everything). If the pattern is not
    * found in the grants, throw an error. Otherwise, return the grant that matches the pattern
    *
    * @param {string} [pattern] - The pattern to match against. If not provided, it will match against
@@ -115,9 +113,9 @@ export class Permission<R = string, Act = string, Obj = string> {
    * @returns A Grant object
    */
   public grant(pattern?: string): Grant<R, Act, Obj> {
-    if (!pattern) pattern = '.*';
+    if (!pattern) pattern = 'any:all';
     if (!this.has(pattern)) throw new Error(`No grant found for pattern ${pattern}`);
-    return this.grants[Object.keys(this.grants).find((k) => RegExp(pattern ?? '.*').test(k)) ?? pattern];
+    return this.grants[Object.keys(this.grants).find((k) => RegExp(pattern ?? 'any:all').test(k)) ?? pattern];
   }
 
   /**
@@ -136,6 +134,15 @@ export class Permission<R = string, Act = string, Obj = string> {
    */
   public hasAll(): boolean {
     return Object.values(this.grants).some((g) => g.object === 'all');
+  }
+
+  /**
+   * It returns an array of all the abilities that the role grants
+   *
+   * @returns An array of Ability objects.
+   */
+  public abilities(): Ability<R, Act, Obj>[] {
+    return Object.values(this.grants).map((g) => g.ability);
   }
 }
 
@@ -156,6 +163,8 @@ export interface Grant<R = string, Act = string, Obj = string> {
   location: (ip: string, strict?: boolean) => boolean;
   /* A function that takes in an object with a date and timezone and returns a boolean. */
   time: (available?: { date?: Date; tz?: string }, strict?: boolean) => boolean;
+  /* Defining a generic type called Ability. It takes three type parameters: R, Act, and Obj. */
+  ability: Ability<R, Act, Obj>;
 }
 
 /**
@@ -167,66 +176,41 @@ export type PermissionGrant<R = string, Act = string, Obj = string> = {
   [key: string]: Grant<R, Act, Obj>;
 };
 
+export interface AccessControlOptions {
+  sep?: string;
+  strict?: boolean;
+}
+
 /* The Attribute-Based Access Control Main Class */
 export default class AccessControl<R = string, Act = string, Obj = string> {
-  private _avj: Ajv;
   private _sep: string;
+  private _strict: boolean;
 
   /* A private property that is used to store the abilities. */
   private _abilities: {
     [key: string]: PermissionGrant<R, Act, Obj>;
-  };
+  } = {};
 
-  /* A JSON schema that is used to validate the abilities. */
-  private _schema: SomeJSONSchema = {
-    type: 'object',
-    required: ['role', 'action', 'object'],
-    properties: {
-      role: { type: 'string', minLength: 1 },
-      action: { type: 'string', minLength: 1 },
-      object: { type: 'string', minLength: 1 },
-      field: { type: 'array', items: { type: 'string' } },
-      filter: { type: 'array', items: { type: 'string' } },
-      location: { type: 'array', items: { type: 'string', format: 'ip_cidr' } },
-      time: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            cron_exp: { type: 'string', format: 'cron' },
-            duration: { type: 'number' },
-          },
-          required: ['cron_exp', 'duration'],
-        },
-      },
-    },
+  /* It is an object with two properties: ip_cidr and cron. The value of each property is a function. */
+  private _validators = {
+    ip_cidr: (val: string) => IP({ exact: true }).test(val) || CIDR({ exact: true }).test(val),
+    cron: (val: string) => !/^(\*\s)+\*$/.test(val) && isValidCron(val, { seconds: true, alias: true }),
   };
-
-  /* A private property that is used to validate the abilities. */
-  private _validate: ValidateFunction;
 
   /**
-   * It takes an array of Ability objects, and it sets up the validator for the schema
+   * The constructor function takes in an array of abilities and an object with two properties, sep and
+   * strict.
+   * The sep property is a string that represents the separator between the action and the object.
+   * The strict property is a boolean that represents whether or not the access control should be
+   * strict.
    *
    * @param {Ability<R, Act, Obj>[]} abilities - An array of Ability objects.
-   * @param [sep=:] - The separator used to separate the role, action, and object.
+   * @param {AccessControlOptions}  - `abilities` - An array of `Ability` objects.
    */
-  constructor(abilities: Ability<R, Act, Obj>[] = [], sep = ':') {
-    this._sep = sep;
-    this._abilities = {};
-    this._avj = new Ajv();
+  constructor(abilities: Ability<R, Act, Obj>[] = [], options?: AccessControlOptions) {
+    this._sep = options?.sep ?? ':';
+    this._strict = options?.strict ?? false;
 
-    this._avj.addFormat('ip_cidr', {
-      type: 'string',
-      validate: (env: string) => IP({ exact: true }).test(env) || CIDR({ exact: true }).test(env),
-    });
-
-    this._avj.addFormat('cron', {
-      type: 'string',
-      validate: (cron: string) => !/^(\*\s)+\*$/.test(cron) && isValidCron(cron, { seconds: true, alias: true }),
-    });
-
-    this._validate = this._avj.compile(this._schema);
     this.abilities = abilities;
   }
 
@@ -239,8 +223,13 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
    * @param ability - Ability<R, Act, Obj>
    */
   public validate(ability: Ability<R, Act, Obj>): void {
-    const valid = this._validate(ability);
-    if (!valid) throw new Error(this._avj.errorsText(this._validate.errors));
+    if (!ability.role || !ability.action || !ability.object) throw new Error('Ability object is not valid');
+
+    if (ability?.location?.length && !ability.location.every((i) => this._validators.ip_cidr(i)))
+      throw new Error('Ability locations is not valid');
+
+    if (ability?.time?.length && !ability.time.every((i) => this._validators.cron(i.cron_exp) && i.duration > 0))
+      throw new Error('Ability times is not valid');
   }
 
   /**
@@ -311,6 +300,7 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
 
         return time.some(check);
       },
+      ability,
     };
   }
 
@@ -326,7 +316,7 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
    *
    * @param {Ability<R, Act, Obj>[]} abilities - Ability<R, Act, Obj>[]
    */
-  protected set abilities(abilities: Ability<R, Act, Obj>[]) {
+  public set abilities(abilities: Ability<R, Act, Obj>[]) {
     if (!abilities.length) this._abilities = {};
 
     for (const ability of abilities) {
@@ -351,6 +341,7 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
     callable?: (perm: Permission<R, Act, Obj>) => boolean,
   ): Permission<R, Act, Obj> {
     const sep = this._sep;
+    const strict = this._strict;
 
     if (!roles?.length) throw new Error('No roles given');
 
@@ -360,7 +351,8 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
     const hasAny = roles.some((r) => Object.keys(this._abilities).some((k) => RegExp(`${r}${sep}any${sep}.*`).test(k)));
     const hasAll = roles.some((r) => Object.keys(this._abilities).some((k) => RegExp(`${r}${sep}.*${sep}all`).test(k)));
 
-    const superKeys = roles.map((r) => `${r}${sep}${hasAny ? '.*' : _action[0]}${sep}${hasAll ? '.*' : _object[0]}`);
+    const superKeys = roles.map((r) => `${r}${sep}${hasAny ? 'any' : _action[0]}${sep}${hasAll ? 'all' : _object[0]}`);
+
     const scopePerm = superKeys.map(
       (k) => this._abilities[Object.keys(this._abilities).find((_k) => RegExp(k).test(_k)) ?? k],
     );
@@ -368,6 +360,12 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
     const grants = scopePerm.reduce((prev, curr) => ({ ...prev, ...curr }), {});
 
     let granted = !!Object.keys(grants).length || (hasAny && hasAll);
+
+    if (strict === true && (_action[1] || _object[1])) {
+      const pattern = `${_action[1] ?? 'any'}${sep}${_object[1] ?? 'all'}`;
+      granted &&= Object.keys(grants).some((k) => RegExp(pattern).test(k));
+    }
+
     if (callable) granted &&= !!callable(new Permission<R, Act, Obj>(granted, grants));
 
     return new Permission<R, Act, Obj>(granted, grants);

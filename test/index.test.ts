@@ -16,7 +16,7 @@ const abilities: Ability<Role>[] = [
   {
     role: Role.Guest,
     action: 'read',
-    object: 'article',
+    object: 'article:published',
   },
   {
     role: Role.Manager,
@@ -63,6 +63,11 @@ const abilities: Ability<Role>[] = [
 describe('test access control', () => {
   it('should define', () => {
     expect(new AccessControl(abilities)).toBeDefined();
+
+    const ac = new AccessControl(abilities);
+    const perm = ac.can([Role.Admin], 'any', 'all');
+
+    expect(perm.abilities()).toStrictEqual([abilities[0]]);
   });
 
   it('should throw error on invalid update', () => {
@@ -74,7 +79,17 @@ describe('test access control', () => {
         action: 'r',
         object: 'a',
       }),
-    ).toThrowError('data/role must NOT have fewer than 1 characters');
+    ).toThrowError('Ability object is not valid');
+  });
+
+  it('should check access strictly', () => {
+    const ac = new AccessControl(abilities, { strict: true });
+
+    expect(ac.can([Role.Guest], 'read', 'article').granted).toBeTruthy();
+
+    expect(ac.can([Role.User], 'read', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.User], 'read:own', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.User], 'read', 'article:published').granted).toBeFalsy();
   });
 
   it('should check access without callable', () => {
@@ -145,7 +160,6 @@ describe('test access control', () => {
     expect(permission.hasAny()).toBeFalsy();
     expect(permission.hasAll()).toBeFalsy();
 
-    expect(permission.grant()).toBeDefined();
     expect(permission.grant('own')).toBeDefined();
     expect(permission.grant('own:.*')).toBeDefined();
     expect(permission.grant('own:all')).toBeDefined();
@@ -153,7 +167,9 @@ describe('test access control', () => {
     expect(permission.grant('shared:.*')).toBeDefined();
     expect(permission.grant('shared:all')).toBeDefined();
 
-    expect(() => permission.grant('share:any')).toThrowError();
+    expect(() => permission.grant()).toThrowError();
+    expect(() => permission.grant('share:all')).toThrowError();
+    expect(() => permission.grant('published')).toThrowError();
 
     const grantOwn = permission.grant('own');
     expect(grantOwn).toStrictEqual(
@@ -186,7 +202,7 @@ describe('test access control', () => {
 
     // check field filtering for user article creation
     const permissionCreate = ac.can(['user'], 'create', 'article');
-    const fieldedArticle = permissionCreate.grant().field(article);
+    const fieldedArticle = permissionCreate.grant('own').field(article);
 
     expect(fieldedArticle).not.toStrictEqual(
       expect.objectContaining({
@@ -248,29 +264,29 @@ describe('test access control', () => {
     const ac = new AccessControl<string>(abilities);
 
     const permission = ac.can(['user'], 'create', 'article', (perm) => {
-      return perm.grant().location('127.0.0.1');
+      return perm.grant('own').location('127.0.0.1');
     });
 
     expect(permission.granted).toBeTruthy();
-    expect(permission.grant().location('192.168.2.1')).toBeFalsy();
-    expect(permission.grant().location('192.168.1.100')).toBeTruthy();
-    expect(permission.grant().location('192.168.1.200')).toBeTruthy();
+    expect(permission.grant('.*').location('192.168.2.1')).toBeFalsy();
+    expect(permission.grant('.*').location('192.168.1.100')).toBeTruthy();
+    expect(permission.grant('.*').location('192.168.1.200')).toBeTruthy();
 
     expect(
       ac.can(['user'], 'create', 'article', (perm) => {
-        return perm.grant().location('192.168.2.100');
+        return perm.grant('.*').location('192.168.2.100');
       }).granted,
     ).toBeFalsy();
 
     expect(
       ac.can(['user'], 'read', 'article', (perm) => {
-        return perm.grant().location('192.168.2.100');
+        return perm.grant('own').location('192.168.2.100');
       }).granted,
     ).toBeTruthy();
 
     expect(
       ac.can(['user'], 'read', 'article', (perm) => {
-        return perm.grant().location('192.168.2.100', true);
+        return perm.grant('shared').location('192.168.2.100', true);
       }).granted,
     ).toBeFalsy();
   });
@@ -279,11 +295,11 @@ describe('test access control', () => {
     const ac = new AccessControl<string>(abilities);
 
     const permission = ac.can(['user'], 'create', 'article', (perm) => {
-      return perm.grant().time();
+      return perm.grant('own').time();
     });
 
     expect(permission.granted).toBeTruthy();
-    expect(permission.grant().time()).toBeTruthy();
+    expect(permission.grant('.*').time()).toBeTruthy();
   });
 
   it('should clear abilities', () => {
