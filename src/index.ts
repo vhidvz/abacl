@@ -176,7 +176,7 @@ export type PermissionGrant<R = string, Act = string, Obj = string> = {
   [key: string]: Grant<R, Act, Obj>;
 };
 
-export interface AccessControlOptions {
+export interface AccessControlOption {
   sep?: string;
   strict?: boolean;
 }
@@ -205,11 +205,11 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
    * strict.
    *
    * @param {Ability<R, Act, Obj>[]} abilities - An array of Ability objects.
-   * @param {AccessControlOptions}  - `abilities` - An array of `Ability` objects.
+   * @param {AccessControlOption}  - `abilities` - An array of `Ability` objects.
    */
-  constructor(abilities: Ability<R, Act, Obj>[] = [], options?: AccessControlOptions) {
+  constructor(abilities: Ability<R, Act, Obj>[] = [], options?: AccessControlOption) {
     this._sep = options?.sep ?? ':';
-    this._strict = options?.strict ?? false;
+    this._strict = options?.strict ?? true;
 
     this.abilities = abilities;
   }

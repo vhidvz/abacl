@@ -120,7 +120,9 @@ Create a new access control object, then get the permission grants:
 ```ts
 import AccessControl from 'abacl';
 
-const ac = new AccessControl(abilities);
+// The `strict` `AccessControlOption` control the scoped functionality 
+// default strict value is true
+const ac = new AccessControl(abilities, { strict: false });
 const permission = ac.can([user.role], 'read', 'article');
 
 if (permission.granted) {
@@ -153,7 +155,8 @@ Time and location access check example:
 ```ts
 import { Permission } from 'abacl';
 
-const ac = new AccessControl(abilities);
+// default `strict` value is true
+const ac = new AccessControl(abilities, { strict: true }); 
 
 const permission = ac.can([user.role], 'create', 'article', (perm: Permission) => {
   return perm.grant('own').location(user.ip) && perm.grant('own').time();
