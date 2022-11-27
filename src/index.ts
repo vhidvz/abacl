@@ -339,9 +339,10 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
     action: Act,
     object: Obj,
     callable?: (perm: Permission<R, Act, Obj>) => boolean,
+    options?: Omit<AccessControlOption, 'sep'>,
   ): Permission<R, Act, Obj> {
     const sep = this._sep;
-    const strict = this._strict;
+    const strict = options?.strict ?? this._strict;
 
     if (!roles?.length) throw new Error('No roles given');
 

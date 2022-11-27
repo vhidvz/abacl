@@ -92,6 +92,15 @@ describe('test access control', () => {
     expect(ac.can([Role.User], 'read', 'article:published').granted).toBeFalsy();
   });
 
+  it('should change strict mode dynamically', () => {
+    const ac = new AccessControl(abilities, { strict: true });
+
+    expect(ac.can([Role.User], 'read', 'article:published').granted).toBeFalsy();
+
+    // After changing strict mode
+    expect(ac.can([Role.User], 'read', 'article:published', undefined, { strict: false }).granted).toBeTruthy();
+  });
+
   it('should check access without callable', () => {
     const ac = new AccessControl<Role>(abilities);
 

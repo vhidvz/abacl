@@ -121,9 +121,24 @@ Create a new access control object, then get the permission grants:
 import AccessControl from 'abacl';
 
 // The `strict` `AccessControlOption` control the scoped functionality 
-// default strict value is true
+// default strict value is true, you can change it on the `can` method
 const ac = new AccessControl(abilities, { strict: false });
 const permission = ac.can([user.role], 'read', 'article');
+
+// change strict mode dynamically, Example:
+// const strictPermission = ac.can([user.role], 'read', 'article', undefined, { strict: true });
+
+/**
+ *   it('should change strict mode dynamically', () => {
+ *     const ac = new AccessControl(abilities, { strict: true });
+ * 
+ *     expect(ac.can([Role.User], 'read', 'article:published').granted).toBeFalsy();
+ * 
+ *     // After changing strict mode
+ *     expect(ac.can([Role.User], 'read', 'article:published', undefined, { strict: false }).granted).toBeTruthy();
+ *   });
+ * 
+ * */
 
 if (permission.granted) {
   // default scope for action and object is `any` and `all`
@@ -156,7 +171,7 @@ Time and location access check example:
 import { Permission } from 'abacl';
 
 // default `strict` value is true
-const ac = new AccessControl(abilities, { strict: true }); 
+const ac = new AccessControl(abilities, { strict: true });
 
 const permission = ac.can([user.role], 'create', 'article', (perm: Permission) => {
   return perm.grant('own').location(user.ip) && perm.grant('own').time();
