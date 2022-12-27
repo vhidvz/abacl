@@ -10,8 +10,8 @@ const { Notation } = require('notation');
 /**
  * `Ability` is a type that represents a single access ability.
  *
- * @property {R} role - The role that is allowed to perform the action on the object.
- * @property {Act | 'any'} action - The action that the role is allowed to perform on the object.
+ * @property {S} subject - The subject that is allowed to perform the action on the object.
+ * @property {Act | 'any'} action - The action that the subject is allowed to perform on the object.
  * @property {Obj | 'all'} object - The object that the user is trying to access.
  * @property {string[]} field - The field property is used to specify the fields that are allowed to be
  * accessed.
@@ -24,8 +24,8 @@ const { Notation } = require('notation');
  * expression is used to determine when the access ability is valid. The duration is used to determine
  * how long the access ability is valid.
  */
-export type Ability<R = string, Act = string, Obj = string> = {
-  role: R;
+export type Ability<S = string, Act = string, Obj = string> = {
+  subject: S;
   action: Act | 'any'; // scoped by separator
   object: Obj | 'all'; // scoped by separator
   field?: string[]; // does not affect on grant or deny permission
@@ -46,20 +46,27 @@ export type Ability<R = string, Act = string, Obj = string> = {
  *
  * @returns A new object with the notation filtered out.
  */
-export function filterByNotation<T = unknown | unknown[]>(
-  data: T,
-  notation: string[],
-  to_plain = true,
-): Partial<T> | Partial<T>[] {
+export function filterByNotation<T = unknown | unknown[]>(data: T, notation: string[], to_plain = true): Partial<T> | Partial<T>[] {
   if (to_plain) data = JSON.parse(JSON.stringify(data));
   if (Array.isArray(data)) return data.map((datum) => new Notation(datum).filter(notation).value);
   else return new Notation(data).filter(notation).value;
 }
 
 /* It takes a boolean and a PermissionGrant object and returns a Permission object */
-export class Permission<R = string, Act = string, Obj = string> {
-  private readonly _granted: boolean;
-  private readonly _grants: PermissionGrant<R, Act, Obj>;
+export class Permission<S = string, Act = string, Obj = string> {
+  /**
+   * It returns the value of the private variable _granted.
+   *
+   * @returns The value of the _granted property.
+   */
+  public readonly granted: boolean;
+
+  /**
+   * It returns the value of the private variable _grants.
+   *
+   * @returns The grants property is being returned.
+   */
+  public readonly grants: PermissionGrant<S, Act, Obj>;
 
   /**
    * The constructor function takes two arguments, a boolean and a PermissionGrant object. The boolean
@@ -67,33 +74,15 @@ export class Permission<R = string, Act = string, Obj = string> {
    * property
    *
    * @param {boolean} granted - boolean - This is the result of the permission check.
-   * @param grants - PermissionGrant<R, Act, Obj>
+   * @param grants - PermissionGrant<S, Act, Obj>
    */
-  constructor(granted: boolean, grants: PermissionGrant<R, Act, Obj>) {
-    this._grants = grants;
-    this._granted = granted;
+  constructor(granted: boolean, grants: PermissionGrant<S, Act, Obj>) {
+    this.grants = grants;
+    this.granted = granted;
   }
 
   /**
-   * It returns the value of the private variable _grants.
-   *
-   * @returns The grants property is being returned.
-   */
-  public get grants() {
-    return this._grants;
-  }
-
-  /**
-   * It returns the value of the private variable _granted.
-   *
-   * @returns The value of the _granted property.
-   */
-  public get granted() {
-    return this._granted;
-  }
-
-  /**
-   * It returns true if any of the keys in the grants object match the pattern
+   * It returns true if any of the scope in the grants object match the pattern
    *
    * @param {string} pattern - The pattern to match against.
    *
@@ -112,10 +101,11 @@ export class Permission<R = string, Act = string, Obj = string> {
    *
    * @returns A Grant object
    */
-  public grant(pattern?: string): Grant<R, Act, Obj> {
+  public grant(pattern?: string): Grant<S, Act, Obj> {
     if (!pattern) pattern = 'any:all';
     if (!this.has(pattern)) throw new Error(`No grant found for pattern ${pattern}`);
-    return this.grants[Object.keys(this.grants).find((k) => RegExp(pattern ?? 'any:all').test(k)) ?? pattern];
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.grants[Object.keys(this.grants).find((k) => RegExp(pattern!).test(k)) ?? pattern];
   }
 
   /**
@@ -128,6 +118,15 @@ export class Permission<R = string, Act = string, Obj = string> {
   }
 
   /**
+   * If any of the grants have an scoped action of 'any', return true
+   *
+   * @returns A boolean value.
+   */
+  public hasScopeAny(): boolean {
+    return Object.keys(this.grants).some((k) => RegExp('any:.*').test(k));
+  }
+
+  /**
    * It returns true if the grants object has a grant with an object of 'all'
    *
    * @returns A boolean value.
@@ -137,18 +136,27 @@ export class Permission<R = string, Act = string, Obj = string> {
   }
 
   /**
-   * It returns an array of all the abilities that the role grants
+   * It returns true if the grants object has a scope with an object of 'all'
+   *
+   * @returns A boolean value.
+   */
+  public hasScopeAll(): boolean {
+    return Object.keys(this.grants).some((k) => RegExp('.*:all').test(k));
+  }
+
+  /**
+   * It returns an array of all the abilities that the subject grants
    *
    * @returns An array of Ability objects.
    */
-  public abilities(): Ability<R, Act, Obj>[] {
+  public abilities(): Ability<S, Act, Obj>[] {
     return Object.values(this.grants).map((g) => g.ability);
   }
 }
 
 /* Defining the interface for the Grant object. */
-export interface Grant<R = string, Act = string, Obj = string> {
-  readonly role: R;
+export interface Grant<S = string, Act = string, Obj = string> {
+  readonly subject: S;
   readonly action: Act | 'any';
   readonly object: Obj | 'all';
   /* A function that takes two parameters, data and to_plain. The data parameter is of type T,
@@ -163,32 +171,33 @@ export interface Grant<R = string, Act = string, Obj = string> {
   location: (ip: string, strict?: boolean) => boolean;
   /* A function that takes in an object with a date and timezone and returns a boolean. */
   time: (available?: { date?: Date; tz?: string }, strict?: boolean) => boolean;
-  /* Defining a generic type called Ability. It takes three type parameters: R, Act, and Obj. */
-  ability: Ability<R, Act, Obj>;
+  /* Defining a generic type called Ability. It takes three type parameters: S, Act, and Obj. */
+  ability: Ability<S, Act, Obj>;
 }
 
 /**
  * `PermissionGrant` is an object whose keys are strings and whose values are `Grant`s.
  *
- * @property [key: undefined] - Grant<R, Act, Obj>;
+ * @property [key: undefined] - Grant<S, Act, Obj>;
  */
-export type PermissionGrant<R = string, Act = string, Obj = string> = {
-  [key: string]: Grant<R, Act, Obj>;
+export type PermissionGrant<S = string, Act = string, Obj = string> = {
+  [key: string]: Grant<S, Act, Obj>;
 };
 
 export interface AccessControlOption {
   sep?: string;
   strict?: boolean;
+  checkScope?: [];
 }
 
 /* The Attribute-Based Access Control Main Class */
-export default class AccessControl<R = string, Act = string, Obj = string> {
-  private _sep: string;
-  private _strict: boolean;
+export default class AccessControl<S = string, Act = string, Obj = string> {
+  protected readonly sep: string;
+  public readonly strict: boolean;
 
   /* A private property that is used to store the abilities. */
   private _abilities: {
-    [key: string]: PermissionGrant<R, Act, Obj>;
+    [key: string]: PermissionGrant<S, Act, Obj>;
   } = {};
 
   /* It is an object with two properties: ip_cidr and cron. The value of each property is a function. */
@@ -204,12 +213,12 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
    * The strict property is a boolean that represents whether or not the access control should be
    * strict.
    *
-   * @param {Ability<R, Act, Obj>[]} abilities - An array of Ability objects.
+   * @param {Ability<S, Act, Obj>[]} abilities - An array of Ability objects.
    * @param {AccessControlOption}  - `abilities` - An array of `Ability` objects.
    */
-  constructor(abilities: Ability<R, Act, Obj>[] = [], options?: AccessControlOption) {
-    this._sep = options?.sep ?? ':';
-    this._strict = options?.strict ?? true;
+  constructor(abilities: Ability<S, Act, Obj>[] = [], options?: AccessControlOption) {
+    this.sep = options?.sep ?? ':';
+    this.strict = options?.strict ?? true;
 
     this.abilities = abilities;
   }
@@ -220,39 +229,37 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
    * The first line of the function calls the `_validate` function, which returns a boolean. If the
    * boolean is false, the second line of the function throws an error
    *
-   * @param ability - Ability<R, Act, Obj>
+   * @param ability - Ability<S, Act, Obj>
    */
-  public validate(ability: Ability<R, Act, Obj>): void {
-    if (!ability.role || !ability.action || !ability.object) throw new Error('Ability object is not valid');
+  public validate(ability: Ability<S, Act, Obj>): void {
+    if (!ability.subject || !ability.action || !ability.object) throw new Error('Ability object is not valid');
 
-    if (ability?.location?.length && !ability.location.every((i) => this._validators.ip_cidr(i)))
-      throw new Error('Ability locations is not valid');
+    if (ability?.location?.length && !ability.location.every((i) => this._validators.ip_cidr(i))) throw new Error('Ability locations is not valid');
 
-    if (ability?.time?.length && !ability.time.every((i) => this._validators.cron(i.cron_exp) && i.duration > 0))
-      throw new Error('Ability times is not valid');
+    if (ability?.time?.length && !ability.time.every((i) => this._validators.cron(i.cron_exp) && i.duration > 0)) throw new Error('Ability times is not valid');
   }
 
   /**
    * It takes in an `Ability` object and validates it, then it adds it to the `_abilities` object
    *
-   * @param ability - Ability<R, Act, Obj>
+   * @param ability - Ability<S, Act, Obj>
    */
-  public update(ability: Ability<R, Act, Obj>): void {
+  public update(ability: Ability<S, Act, Obj>): void {
     this.validate(ability);
 
-    const sep = this._sep;
+    const sep = this.sep;
 
-    const role = ability.role;
+    const subject = ability.subject;
     const action = (ability.action as unknown as string).split(sep);
     const object = (ability.object as unknown as string).split(sep);
 
-    const superKey = `${role}${sep}${action[0]}${sep}${object[0]}`;
+    const superKey = `${subject}${sep}${action[0]}${sep}${object[0]}`;
     const scopeKey = `${action[1] ?? 'any'}${sep}${object[1] ?? 'all'}`;
 
     if (!this._abilities[superKey]) this._abilities[superKey] = {};
 
     this._abilities[superKey][scopeKey] = {
-      role,
+      subject,
       action: ability.action,
       object: ability.object,
       /* A function that takes in a data object and returns a partial of the data. */
@@ -314,9 +321,9 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
   /**
    * It takes an array of abilities, and updates the internal abilities object with the new abilities
    *
-   * @param {Ability<R, Act, Obj>[]} abilities - Ability<R, Act, Obj>[]
+   * @param {Ability<S, Act, Obj>[]} abilities - Ability<S, Act, Obj>[]
    */
-  public set abilities(abilities: Ability<R, Act, Obj>[]) {
+  public set abilities(abilities: Ability<S, Act, Obj>[]) {
     if (!abilities.length) this._abilities = {};
 
     for (const ability of abilities) {
@@ -325,9 +332,9 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
   }
 
   /**
-   * It checks if the given roles have the given action on the given object
+   * It checks if the given subjects have the given action on the given object
    *
-   * @param {R[]} roles - An array of roles that the user has.
+   * @param {S[]} subjects - An array of subjects that the user has.
    * @param {Act} action - The action you want to perform on the object.
    * @param {Obj} object - The object you want to check permissions for.
    * @param [callable] - A function that takes a Permission object and returns a boolean.
@@ -335,40 +342,45 @@ export default class AccessControl<R = string, Act = string, Obj = string> {
    * @returns A Permission object
    */
   public can(
-    roles: R[],
+    subjects: S[],
     action: Act,
     object: Obj,
-    callable?: (perm: Permission<R, Act, Obj>) => boolean,
+    callable?: null | ((perm: Permission<S, Act, Obj>) => boolean),
     options?: Omit<AccessControlOption, 'sep'>,
-  ): Permission<R, Act, Obj> {
-    const sep = this._sep;
-    const strict = options?.strict ?? this._strict;
+  ): Permission<S, Act, Obj> {
+    const sep = this.sep;
+    const strict = options?.strict ?? this.strict;
 
-    if (!roles?.length) throw new Error('No roles given');
+    if (!subjects?.length) throw new Error('No subjects given');
 
     const _action = (action as unknown as string).split(sep);
     const _object = (object as unknown as string).split(sep);
 
-    const hasAny = roles.some((r) => Object.keys(this._abilities).some((k) => RegExp(`${r}${sep}any${sep}.*`).test(k)));
-    const hasAll = roles.some((r) => Object.keys(this._abilities).some((k) => RegExp(`${r}${sep}.*${sep}all`).test(k)));
+    const hasAny = subjects.some((s) => Object.keys(this._abilities).some((k) => RegExp(`${s}${sep}any${sep}.*`).test(k)));
+    const hasAll = subjects.some((s) => Object.keys(this._abilities).some((k) => RegExp(`${s}${sep}.*${sep}all`).test(k)));
 
-    const superKeys = roles.map((r) => `${r}${sep}${hasAny ? 'any' : _action[0]}${sep}${hasAll ? 'all' : _object[0]}`);
+    const superKeys = subjects.map((s) => `${s}${sep}${hasAny ? '.*' : _action[0]}${sep}${hasAll ? '.*' : _object[0]}`);
 
-    const scopePerm = superKeys.map(
-      (k) => this._abilities[Object.keys(this._abilities).find((_k) => RegExp(k).test(_k)) ?? k],
-    );
+    const scopePerm = superKeys.map((k) => this._abilities[Object.keys(this._abilities).find((_k) => RegExp(k).test(_k)) ?? k]);
 
     const grants = scopePerm.reduce((prev, curr) => ({ ...prev, ...curr }), {});
 
     let granted = !!Object.keys(grants).length || (hasAny && hasAll);
 
     if (strict === true && (_action[1] || _object[1])) {
-      const pattern = `${_action[1] ?? 'any'}${sep}${_object[1] ?? 'all'}`;
+      const pattern = `${_action[1] ?? '.*'}${sep}${_object[1] ?? '.*'}`;
       granted &&= Object.keys(grants).some((k) => RegExp(pattern).test(k));
     }
 
-    if (callable) granted &&= !!callable(new Permission<R, Act, Obj>(granted, grants));
+    const perm = new Permission<S, Act, Obj>(granted, grants);
 
-    return new Permission<R, Act, Obj>(granted, grants);
+    if (callable) {
+      if (granted) granted &&= !!callable(perm);
+      else if (!granted) granted = !!callable(perm);
+    } else {
+      granted = granted ? granted : perm.hasScopeAll() && perm.hasScopeAny();
+    }
+
+    return new Permission<S, Act, Obj>(granted, grants);
   }
 }

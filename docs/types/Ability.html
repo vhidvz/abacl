@@ -14,13 +14,13 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../modules.html">abacl</a></li>
 <li><a href="Ability.html">Ability</a></li></ul>
-<h1>Type alias Ability&lt;R, Act, Obj&gt;</h1></div>
-<div class="tsd-signature">Ability<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">R</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Act</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Obj</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span>action<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Act</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;any&quot;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>field<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>filter<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>location<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>object<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Obj</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;all&quot;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>role<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">R</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>time<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{ </span><br/><span>        </span>cron_exp<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span>duration<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<h1>Type alias Ability&lt;S, Act, Obj&gt;</h1></div>
+<div class="tsd-signature">Ability<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Act</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Obj</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span>action<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Act</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;any&quot;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>field<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>filter<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>location<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>object<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Obj</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;all&quot;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>subject<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>time<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{ </span><br/><span>        </span>cron_exp<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>        </span>duration<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p><code>Ability</code> is a type that represents a single access ability.</p>
 
-<h3>Property</h3><p>The role that is allowed to perform the action on the object.</p>
+<h3>Property</h3><p>The subject that is allowed to perform the action on the object.</p>
 
-<h3>Property</h3><p>The action that the role is allowed to perform on the object.</p>
+<h3>Property</h3><p>The action that the subject is allowed to perform on the object.</p>
 
 <h3>Property</h3><p>The object that the user is trying to access.</p>
 
@@ -39,7 +39,7 @@ how long the access ability is valid.</p>
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameters">
 <li>
-<h4>R = <span class="tsd-signature-type">string</span></h4></li>
+<h4>S = <span class="tsd-signature-type">string</span></h4></li>
 <li>
 <h4>Act = <span class="tsd-signature-type">string</span></h4></li>
 <li>
@@ -58,11 +58,11 @@ how long the access ability is valid.</p>
 <li class="tsd-parameter">
 <h5>object<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">Obj</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;all&quot;</span></h5></li>
 <li class="tsd-parameter">
-<h5>role<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">R</span></h5></li>
+<h5>subject<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span></h5></li>
 <li class="tsd-parameter">
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> time<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span>cron_exp<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>duration<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span></h5></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/vhidvz/abacl/blob/abf6d1c/src/index.ts#L27">index.ts:27</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/vhidvz/abacl/blob/03117a1/src/index.ts#L27">index.ts:27</a></li></ul></aside></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">

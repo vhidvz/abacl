@@ -9,22 +9,22 @@ enum Role {
 
 const abilities: Ability<Role>[] = [
   {
-    role: Role.Admin,
+    subject: Role.Admin,
     action: 'any',
     object: 'all',
   },
   {
-    role: Role.Guest,
+    subject: Role.Guest,
     action: 'read',
     object: 'article:published',
   },
   {
-    role: Role.Manager,
+    subject: Role.Manager,
     action: 'any',
     object: 'article',
   },
   {
-    role: Role.User,
+    subject: Role.User,
     action: 'create:own',
     object: 'article',
     field: ['*', '!owner'],
@@ -37,23 +37,23 @@ const abilities: Ability<Role>[] = [
     ],
   },
   {
-    role: Role.User,
+    subject: Role.User,
     action: 'read:own',
     object: 'article',
   },
   {
-    role: Role.User,
+    subject: Role.User,
     action: 'read:shared',
     object: 'article',
     filter: ['*', '!id'],
   },
   {
-    role: Role.User,
+    subject: Role.User,
     action: 'delete:own',
     object: 'article',
   },
   {
-    role: Role.User,
+    subject: Role.User,
     action: 'update:own',
     object: 'article',
     field: ['*', '!owner'],
@@ -75,7 +75,7 @@ describe('test access control', () => {
 
     expect(() =>
       ac.update({
-        role: '',
+        subject: '',
         action: 'r',
         object: 'a',
       }),
@@ -140,7 +140,7 @@ describe('test access control', () => {
         expect(perm.grants).toStrictEqual(
           expect.objectContaining({
             'any:all': expect.objectContaining({
-              role: 'admin',
+              subject: 'admin',
               action: 'any',
               object: 'all',
               field: expect.any(Function),
@@ -183,7 +183,7 @@ describe('test access control', () => {
     const grantOwn = permission.grant('own');
     expect(grantOwn).toStrictEqual(
       expect.objectContaining({
-        role: 'user',
+        subject: 'user',
         action: 'read:own',
         object: 'article',
       }),
@@ -192,7 +192,7 @@ describe('test access control', () => {
     const grantShared = permission.grant('shared');
     expect(grantShared).toStrictEqual(
       expect.objectContaining({
-        role: 'user',
+        subject: 'user',
         action: 'read:shared',
         object: 'article',
       }),
@@ -316,5 +316,24 @@ describe('test access control', () => {
 
     ac.clear();
     expect(ac.can(['admin'], 'any', 'all').granted).toBeFalsy();
+  });
+
+  it('should have multiple subject', () => {
+    const ac = new AccessControl<string>(abilities);
+
+    expect(ac.can([Role.Guest, Role.User], 'read', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.Guest, Role.User], 'read', 'article:published').granted).toBeTruthy();
+    expect(ac.can([Role.Guest, Role.User], 'read', 'article:unpublished').granted).toBeTruthy();
+
+    expect(ac.can([Role.Guest, Role.User, Role.Manager], 'read', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.Guest, Role.User, Role.Manager], 'read', 'article:published').granted).toBeTruthy();
+  });
+
+  it('should replace granted on falsy', () => {
+    const ac = new AccessControl<string>(abilities);
+
+    const permission = ac.can([Role.Guest, Role.User], 'make', 'nothing', () => true);
+
+    expect(permission.granted).toBeTruthy();
   });
 });

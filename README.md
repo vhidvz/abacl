@@ -14,7 +14,7 @@
 
 The Attribute-Based Access-Control Library let you define five `can` access ability:
 
-- Who can? the answer is `role` - Like RBAC a user can have roles.
+- Who can? the answer is `subject` - Like RBAC a user can have roles.
 - How can it? the answer is `action` - You can define `any` actions you want (scoped).
 - What can? the answer is `object` - You can define `all` objects you want (scoped).
 - Where can? the answer is `location` - With IP and CIDR you can find the location of users.
@@ -46,22 +46,22 @@ enum Role {
 
 const abilities: Ability<Role>[] = [
   {
-    role: Role.Admin,
+    subject: Role.Admin,
     action: 'any',
     object: 'all',
   },
   {
-    role: Role.Guest,
+    subject: Role.Guest,
     action: 'read',
     object: 'article:published',
   },
   {
-    role: Role.Manager,
+    subject: Role.Manager,
     action: 'any',
     object: 'article',
   },
   {
-    role: Role.User,
+    subject: Role.User,
     action: 'create:own',
     object: 'article',
     field: ['*', '!owner'],
@@ -74,23 +74,23 @@ const abilities: Ability<Role>[] = [
     ],
   },
   {
-    role: Role.User,
+    subject: Role.User,
     action: 'read:own',
     object: 'article',
   },
   {
-    role: Role.User,
+    subject: Role.User,
     action: 'read:shared',
     object: 'article',
     filter: ['*', '!id'],
   },
   {
-    role: Role.User,
+    subject: Role.User,
     action: 'delete:own',
     object: 'article',
   },
   {
-    role: Role.User,
+    subject: Role.User,
     action: 'update:own',
     object: 'article',
     field: ['*', '!owner'],
@@ -103,7 +103,7 @@ Article and User definition objects:
 ```ts
 const user = {
   id: 1,
-  role: Role.User,
+  subject: Role.User,
   ip: '192.168.1.100',
 };
 
@@ -123,10 +123,10 @@ import AccessControl from 'abacl';
 // The `strict` `AccessControlOption` control the scoped functionality 
 // default strict value is true, you can change it on the `can` method
 const ac = new AccessControl(abilities, { strict: false });
-const permission = ac.can([user.role], 'read', 'article');
+const permission = ac.can([user.subject], 'read', 'article');
 
 // change strict mode dynamically, Example:
-// const strictPermission = ac.can([user.role], 'read', 'article', undefined, { strict: true });
+// const strictPermission = ac.can([user.subject], 'read', 'article', undefined, { strict: true });
 
 /**
  *   it('should change strict mode dynamically', () => {
@@ -173,9 +173,15 @@ import { Permission } from 'abacl';
 // default `strict` value is true
 const ac = new AccessControl(abilities, { strict: true });
 
-const permission = ac.can([user.role], 'create', 'article', (perm: Permission) => {
+const permission = ac.can([user.subject], 'create', 'article', (perm: Permission) => {
   return perm.grant('own').location(user.ip) && perm.grant('own').time();
 });
+
+// it('should replace granted on falsy', () => {
+//   const ac = new AccessControl<string>(abilities);
+//   const permission = ac.can([Role.Guest, Role.User], 'make', 'nothing', () => true);
+//   expect(permission.granted).toBeTruthy();
+// });
 
 if (permission.granted) {
   const inputData = permission.grant('.*').field(article);
