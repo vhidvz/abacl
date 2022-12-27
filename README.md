@@ -14,7 +14,7 @@
 
 The Attribute-Based Access-Control Library let you define five `can` access ability:
 
-- Who can? the answer is `subject` - Like RBAC a user can have roles.
+- Who can? the answer is `subject` - Like RBAC a user can have multiple roles.
 - How can it? the answer is `action` - You can define `any` actions you want (scoped).
 - What can? the answer is `object` - You can define `all` objects you want (scoped).
 - Where can? the answer is `location` - With IP and CIDR you can find the location of users.
