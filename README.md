@@ -177,12 +177,6 @@ const permission = ac.can([user.subject], 'create', 'article', (perm: Permission
   return perm.grant('own').location(user.ip) && perm.grant('own').time();
 });
 
-// it('should replace granted on falsy', () => {
-//   const ac = new AccessControl<string>(abilities);
-//   const permission = ac.can([Role.Guest, Role.User], 'make', 'nothing', () => true);
-//   expect(permission.granted).toBeTruthy();
-// });
-
 if (permission.granted) {
   const inputData = permission.grant('.*').field(article);
 

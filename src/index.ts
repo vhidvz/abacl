@@ -374,12 +374,8 @@ export default class AccessControl<S = string, Act = string, Obj = string> {
 
     const perm = new Permission<S, Act, Obj>(granted, grants);
 
-    if (callable) {
-      if (granted) granted &&= !!callable(perm);
-      else if (!granted) granted = !!callable(perm);
-    } else {
-      granted = granted ? granted : perm.hasScopeAll() && perm.hasScopeAny();
-    }
+    granted ||= perm.hasScopeAll() && perm.hasScopeAny();
+    if (callable && granted) granted &&= !!callable(perm);
 
     return new Permission<S, Act, Obj>(granted, grants);
   }
