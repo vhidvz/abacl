@@ -365,17 +365,17 @@ export default class AccessControl<S = string, Act = string, Obj = string> {
 
     const grants = scopePerm.reduce((prev, curr) => ({ ...prev, ...curr }), {});
 
-    let granted = !!Object.keys(grants).length || (hasAny && hasAll);
+    const hasScopeAny = Object.keys(grants).some((k) => RegExp('any:.*').test(k));
+    const hasScopeAll = Object.keys(grants).some((k) => RegExp('.*:all').test(k));
+
+    let granted = !!Object.keys(grants).length || (hasAny && hasAll) || (hasScopeAny && hasScopeAll);
 
     if (strict === true && (_action[1] || _object[1])) {
       const pattern = `${_action[1] ?? '.*'}${sep}${_object[1] ?? '.*'}`;
       granted &&= Object.keys(grants).some((k) => RegExp(pattern).test(k));
     }
 
-    const perm = new Permission<S, Act, Obj>(granted, grants);
-
-    granted ||= perm.hasScopeAll() && perm.hasScopeAny();
-    if (callable && granted) granted &&= !!callable(perm);
+    if (callable && granted) granted &&= !!callable(new Permission<S, Act, Obj>(granted, grants));
 
     return new Permission<S, Act, Obj>(granted, grants);
   }

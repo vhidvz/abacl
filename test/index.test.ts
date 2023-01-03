@@ -323,7 +323,9 @@ describe('test access control', () => {
 
     expect(ac.can([Role.Guest, Role.User], 'read', 'article').granted).toBeTruthy();
     expect(ac.can([Role.Guest, Role.User], 'read', 'article:published').granted).toBeTruthy();
-    expect(ac.can([Role.Guest, Role.User], 'read', 'article:unpublished').granted).toBeTruthy();
+
+    expect(ac.can([Role.Guest, Role.User], 'read', 'article:unpublished', null, { strict: true }).granted).toBeFalsy();
+    expect(ac.can([Role.Guest, Role.User], 'read', 'article:unpublished', null, { strict: false }).granted).toBeTruthy();
 
     expect(ac.can([Role.Guest, Role.User, Role.Manager], 'read', 'article').granted).toBeTruthy();
     expect(ac.can([Role.Guest, Role.User, Role.Manager], 'read', 'article:published').granted).toBeTruthy();
