@@ -169,6 +169,9 @@ describe('test access control', () => {
     expect(permission.hasAny()).toBeFalsy();
     expect(permission.hasAll()).toBeFalsy();
 
+    expect(permission.hasScopeAny()).toBeFalsy();
+    expect(permission.hasScopeAll()).toBeTruthy();
+
     expect(permission.grant('own')).toBeDefined();
     expect(permission.grant('own:.*')).toBeDefined();
     expect(permission.grant('own:all')).toBeDefined();

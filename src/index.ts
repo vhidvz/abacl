@@ -370,12 +370,12 @@ export default class AccessControl<S = string, Act = string, Obj = string> {
 
     let granted = !!Object.keys(grants).length || (hasAny && hasAll) || (hasScopeAny && hasScopeAll);
 
-    if (strict === true && (_action[1] || _object[1])) {
+    if (granted && strict === true && (_action[1] || _object[1])) {
       const pattern = `${_action[1] ?? '.*'}${sep}${_object[1] ?? '.*'}`;
       granted &&= Object.keys(grants).some((k) => RegExp(pattern).test(k));
     }
 
-    if (callable && granted) granted &&= !!callable(new Permission<S, Act, Obj>(granted, grants));
+    if (granted && callable) granted &&= !!callable(new Permission<S, Act, Obj>(granted, grants));
 
     return new Permission<S, Act, Obj>(granted, grants);
   }
