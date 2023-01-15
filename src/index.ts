@@ -17,19 +17,18 @@ const { Notation } = require('notation');
 export function accumulate(...filters: string[][]): string[] {
   filters = filters.filter((f) => f.length > 0);
 
-  let result = filters.shift();
+  const result = filters.shift();
   if (!result) return [];
 
-  for (const filter of filters.flat()) {
-    if (result.includes(filter)) continue;
+  let neg = result.filter((f) => f.startsWith('!'));
+  let pos = result.filter((f) => !f.startsWith('!'));
 
-    if (!filter.startsWith('!')) {
-      if (result.includes(`!${filter}`)) result = result.map((f) => (f === `!${filter}` ? filter : f));
-      else result.push(filter);
-    }
+  for (const filter of filters) {
+    pos = [...new Set([...pos, ...filter.filter((f) => !f.startsWith('!'))])];
+    neg = neg.filter((n) => filter.filter((f) => f.startsWith('!')).includes(n));
   }
 
-  return result;
+  return [...pos, ...neg];
 }
 
 /**

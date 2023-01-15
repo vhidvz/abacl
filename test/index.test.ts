@@ -382,13 +382,13 @@ describe('test access control', () => {
   });
 
   it('should accumulate filters', () => {
-    const filter0 = ['*', 'owner', 'status', 'test', '!id'];
+    const filter0 = ['*', 'owner', 'status', 'test', '!id', '!all'];
     const filter1 = ['*', '!owner', '!status', 'test', '!id', 'any'];
 
     const acc0 = accumulate(filter0, filter1);
     const acc1 = accumulate(filter1, filter0);
 
-    expect(acc0).toEqual(['*', 'owner', 'status', 'test', '!id', 'any']);
-    expect(acc1).toEqual(['*', 'owner', 'status', 'test', '!id', 'any']);
+    expect(acc0).toEqual(['*', 'owner', 'status', 'test', 'any', '!id']);
+    expect(acc1).toEqual(['*', 'test', 'any', 'owner', 'status', '!id']);
   });
 });
