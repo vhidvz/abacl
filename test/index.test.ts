@@ -1,4 +1,4 @@
-import AccessControl, { Ability } from '../src';
+import AccessControl, { Ability, accumulate } from '../src';
 
 enum Role {
   Admin = 'admin',
@@ -379,5 +379,16 @@ describe('test access control', () => {
 
     expect(ac.can([Role.Guest, Role.User, Role.Manager], 'read', 'article').granted).toBeTruthy();
     expect(ac.can([Role.Guest, Role.User, Role.Manager], 'read', 'article:published').granted).toBeTruthy();
+  });
+
+  it('should accumulate filters', () => {
+    const filter0 = ['*', 'owner', 'status', 'test', '!id'];
+    const filter1 = ['*', '!owner', '!status', 'test', '!id', 'any'];
+
+    const acc0 = accumulate(filter0, filter1);
+    const acc1 = accumulate(filter1, filter0);
+
+    expect(acc0).toEqual(['*', 'owner', 'status', 'test', '!id', 'any']);
+    expect(acc1).toEqual(['*', 'owner', 'status', 'test', '!id', 'any']);
   });
 });

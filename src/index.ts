@@ -14,15 +14,20 @@ const { Notation } = require('notation');
  *
  * @returns An array of strings.
  */
-export function accumulate(filters: string[][]): string[] {
-  let result: string[] = [];
+export function accumulate(...filters: string[][]): string[] {
+  filters = filters.filter((f) => f.length > 0);
 
-  filters.flat().forEach((filter) => {
-    if (result.includes(filter)) return;
-    else if (!filter.startsWith('!') && !result.includes(filter)) result.push(filter);
-    else if (filter.startsWith('!') && !result.includes(filter.slice(1))) result.push(filter);
-    else if (!filter.startsWith('!') && result.includes(`!${filter}`)) result = result.filter((f) => f !== `!${filter}`);
-  });
+  let result = filters.shift();
+  if (!result) return [];
+
+  for (const filter of filters.flat()) {
+    if (result.includes(filter)) continue;
+
+    if (!filter.startsWith('!')) {
+      if (result.includes(`!${filter}`)) result = result.map((f) => (f === `!${filter}` ? filter : f));
+      else result.push(filter);
+    }
+  }
 
   return result;
 }
@@ -88,7 +93,7 @@ export class Permission<S = string, Act = string, Obj = string> {
    * @returns A partial of the data passed in.
    */
   public field<T = unknown | unknown[]>(data: T, deep_copy = false): Partial<T> | Partial<T>[] {
-    if (!this.fields) this.fields = accumulate(Object.values(this.grants).map((g) => g.ability.field ?? []));
+    if (!this.fields) this.fields = accumulate(...Object.values(this.grants).map((g) => g.ability.field ?? []));
     return filterByNotation<T>(data, !this.fields.length ? ['*'] : this.fields, deep_copy);
   }
 
@@ -101,7 +106,7 @@ export class Permission<S = string, Act = string, Obj = string> {
    * @returns A partial of the data passed in.
    */
   public filter<T = unknown | unknown[]>(data: T, deep_copy = false): Partial<T> | Partial<T>[] {
-    if (!this.filters) this.filters = accumulate(Object.values(this.grants).map((g) => g.ability.filter ?? []));
+    if (!this.filters) this.filters = accumulate(...Object.values(this.grants).map((g) => g.ability.filter ?? []));
     return filterByNotation<T>(data, !this.filters.length ? ['*'] : this.filters, deep_copy);
   }
 
