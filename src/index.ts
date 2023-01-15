@@ -15,12 +15,13 @@ const { Notation } = require('notation');
  * @returns An array of strings.
  */
 export function accumulate(filters: string[][]): string[] {
-  const result: string[] = [];
+  let result: string[] = [];
 
   filters.flat().forEach((filter) => {
     if (result.includes(filter)) return;
     else if (!filter.startsWith('!') && !result.includes(filter)) result.push(filter);
     else if (filter.startsWith('!') && !result.includes(filter.slice(1))) result.push(filter);
+    else if (!filter.startsWith('!') && result.includes(`!${filter}`)) result = result.filter((f) => f !== `!${filter}`);
   });
 
   return result;
