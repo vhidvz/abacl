@@ -272,6 +272,53 @@ describe('test access control', () => {
     );
   });
 
+  it('should check permission filtering (field, filter)', () => {
+    const ac = new AccessControl<string>(abilities);
+
+    const article = {
+      id: 1,
+      owner: 'user',
+      title: 'title',
+      content: 'content',
+    };
+
+    // fielding
+    let permission = ac.can(['user'], 'create', 'article');
+    const fieldedArticle = permission.field(article);
+
+    expect(fieldedArticle).not.toStrictEqual(
+      expect.objectContaining({
+        owner: expect.anything(),
+      }),
+    );
+
+    expect(fieldedArticle).toStrictEqual(
+      expect.objectContaining({
+        id: 1,
+        title: 'title',
+        content: 'content',
+      }),
+    );
+
+    // filtering
+    permission = ac.can(['user'], 'read', 'article');
+    const filteredArticle = permission.filter(article);
+
+    expect(filteredArticle).not.toStrictEqual(
+      expect.objectContaining({
+        id: expect.anything(),
+      }),
+    );
+
+    expect(filteredArticle).toStrictEqual(
+      expect.objectContaining({
+        owner: 'user',
+        title: 'title',
+        content: 'content',
+      }),
+    );
+  });
+
   it('should check location', () => {
     const ac = new AccessControl<string>(abilities);
 

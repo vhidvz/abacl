@@ -8,6 +8,25 @@ import IP from 'ip-regex';
 const { Notation } = require('notation');
 
 /**
+ * It takes an array of arrays of filters, and returns an array of filter
+ *
+ * @param {string[][]} filters - string[][]
+ *
+ * @returns An array of strings.
+ */
+export function accumulate(filters: string[][]): string[] {
+  const result: string[] = [];
+
+  filters.flat().forEach((filter) => {
+    if (result.includes(filter)) return;
+    else if (!filter.startsWith('!') && !result.includes(filter)) result.push(filter);
+    else if (filter.startsWith('!') && !result.includes(filter.slice(1))) result.push(filter);
+  });
+
+  return result;
+}
+
+/**
  * `Ability` is a type that represents a single access ability.
  *
  * @property {S} subject - The subject that is allowed to perform the action on the object.
@@ -42,18 +61,49 @@ export type Ability<S = string, Act = string, Obj = string> = {
  *
  * @param {T} data - The data to filter.
  * @param {string[]} notation - The notation to filter by.
- * @param [to_plain=true] - If true, the data will be converted to a plain object.
+ * @param [deep_copy=true] - If true, the data will be converted to a plain object.
  *
  * @returns A new object with the notation filtered out.
  */
-export function filterByNotation<T = unknown | unknown[]>(data: T, notation: string[], to_plain = true): Partial<T> | Partial<T>[] {
-  if (to_plain) data = JSON.parse(JSON.stringify(data));
+export function filterByNotation<T = unknown | unknown[]>(data: T, notation: string[], deep_copy = true): Partial<T> | Partial<T>[] {
+  if (deep_copy) data = JSON.parse(JSON.stringify(data));
   if (Array.isArray(data)) return data.map((datum) => new Notation(datum).filter(notation).value);
   else return new Notation(data).filter(notation).value;
 }
 
 /* It takes a boolean and a PermissionGrant object and returns a Permission object */
 export class Permission<S = string, Act = string, Obj = string> {
+  private fields: string[] | undefined;
+  private filters: string[] | undefined;
+
+  /**
+   * It takes a data object and returns a filtered version of it based on the fields that the user is
+   * allowed to see
+   *
+   * @param {T} data - The data to filter.
+   * @param [deep_copy=false] - If true, the returned object will be a deep copy of the original
+   * object.
+   *
+   * @returns A partial of the data passed in.
+   */
+  public field<T = unknown | unknown[]>(data: T, deep_copy = false): Partial<T> | Partial<T>[] {
+    if (!this.fields) this.fields = accumulate(Object.values(this.grants).map((g) => g.ability.field ?? []));
+    return filterByNotation<T>(data, !this.fields.length ? ['*'] : this.fields, deep_copy);
+  }
+
+  /**
+   * It takes a data object and returns a filtered version of it based on the user's permissions
+   *
+   * @param {T} data - The data to filter.
+   * @param [deep_copy=false] - If true, the data will be deep copied before filtering.
+   *
+   * @returns A partial of the data passed in.
+   */
+  public filter<T = unknown | unknown[]>(data: T, deep_copy = false): Partial<T> | Partial<T>[] {
+    if (!this.filters) this.filters = accumulate(Object.values(this.grants).map((g) => g.ability.filter ?? []));
+    return filterByNotation<T>(data, !this.filters.length ? ['*'] : this.filters, deep_copy);
+  }
+
   /**
    * It returns the value of the private variable _granted.
    *
@@ -159,14 +209,14 @@ export interface Grant<S = string, Act = string, Obj = string> {
   readonly subject: S;
   readonly action: Act | 'any';
   readonly object: Obj | 'all';
-  /* A function that takes two parameters, data and to_plain. The data parameter is of type T,
-  which is a generic type. The to_plain parameter is of type boolean and has a default value of
+  /* A function that takes two parameters, data and deep_copy. The data parameter is of type T,
+  which is a generic type. The deep_copy parameter is of type boolean and has a default value of
   false. The function returns a Partial<T> or Partial<T>[] */
-  field: <T = unknown | unknown[]>(data: T, to_plain?: boolean) => Partial<T> | Partial<T>[];
-  /* A function that takes two parameters, data and to_plain. The data parameter is of type T,
-  which is a generic type. The to_plain parameter is of type boolean and has a default value of
+  field: <T = unknown | unknown[]>(data: T, deep_copy?: boolean) => Partial<T> | Partial<T>[];
+  /* A function that takes two parameters, data and deep_copy. The data parameter is of type T,
+  which is a generic type. The deep_copy parameter is of type boolean and has a default value of
   false. The function returns a Partial<T> or Partial<T>[] */
-  filter: <T = unknown | unknown[]>(data: T, to_plain?: boolean) => Partial<T> | Partial<T>[];
+  filter: <T = unknown | unknown[]>(data: T, deep_copy?: boolean) => Partial<T> | Partial<T>[];
   /* A function that takes in an IP address and returns a boolean. */
   location: (ip: string, strict?: boolean) => boolean;
   /* A function that takes in an object with a date and timezone and returns a boolean. */
@@ -263,12 +313,12 @@ export default class AccessControl<S = string, Act = string, Obj = string> {
       action: ability.action,
       object: ability.object,
       /* A function that takes in a data object and returns a partial of the data. */
-      field<T = unknown | unknown[]>(data: T, to_plain = false): Partial<T> | Partial<T>[] {
-        return filterByNotation<T>(data, ability.field ?? ['*'], to_plain);
+      field<T = unknown | unknown[]>(data: T, deep_copy = false): Partial<T> | Partial<T>[] {
+        return filterByNotation<T>(data, ability.field ?? ['*'], deep_copy);
       },
       /* Filtering the data based on the ability.filter notation. */
-      filter<T = unknown | unknown[]>(data: T, to_plain = false): Partial<T> | Partial<T>[] {
-        return filterByNotation<T>(data, ability.filter ?? ['*'], to_plain);
+      filter<T = unknown | unknown[]>(data: T, deep_copy = false): Partial<T> | Partial<T>[] {
+        return filterByNotation<T>(data, ability.filter ?? ['*'], deep_copy);
       },
       /* Checking if the IP address is in the subnet or not. */
       location(ip: string, strict = false): boolean {

@@ -120,8 +120,9 @@ Create a new access control object, then get the permission grants:
 ```ts
 import AccessControl from 'abacl';
 
-// The `strict` `AccessControlOption` control the scoped functionality 
+// The `strict` `AccessControlOption` control the scoped functionality
 // default strict value is true, you can change it on the `can` method
+
 const ac = new AccessControl(abilities, { strict: false });
 const permission = ac.can([user.subject], 'read', 'article');
 
@@ -131,27 +132,30 @@ const permission = ac.can([user.subject], 'read', 'article');
 /**
  *   it('should change strict mode dynamically', () => {
  *     const ac = new AccessControl(abilities, { strict: true });
- * 
+ *
  *     expect(ac.can([Role.User], 'read', 'article:published').granted).toBeFalsy();
- * 
+ *
  *     // After changing strict mode
  *     expect(ac.can([Role.User], 'read', 'article:published', undefined, { strict: false }).granted).toBeTruthy();
  *   });
- * 
+ *
  * */
 
 if (permission.granted) {
   // default scope for action and object is `any` and `all`
 
-  if (permission.has('own')) { // Or pattern 'own:.*'
+  if (permission.has('own')) {
+    // Or pattern 'own:.*'
     // user has read owned article objects
   }
 
-  if (permission.has('shared')) { // Or pattern 'shared:.*'
+  if (permission.has('shared')) {
+    // Or pattern 'shared:.*'
     // user can access shared article objects
   }
 
-  if (permission.has('published')) { // Or pattern '.*:published'
+  if (permission.has('published')) {
+    // Or pattern '.*:published'
     // user can access shared article objects
   }
 
@@ -159,6 +163,7 @@ if (permission.granted) {
 
   // get grants by pattern 'shared' or 'shared:.*'
   // pattern: [action_scoped_regex]:[object_scoped_regex]
+  const response = permission.filter(article); // OR
   const response = permission.grant('shared').filter(article);
 
   // Now response has no `id` property so sent it to user
@@ -178,6 +183,7 @@ const permission = ac.can([user.subject], 'create', 'article', (perm: Permission
 });
 
 if (permission.granted) {
+  const inputData = permission.field(article); // OR
   const inputData = permission.grant('.*').field(article);
 
   // the `inputData` has not `owner` property
