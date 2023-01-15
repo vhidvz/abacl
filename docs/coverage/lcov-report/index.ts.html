@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>490/490</span>
+                <span class='fraction'>502/502</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>490/490</span>
+                <span class='fraction'>502/502</span>
             </div>
         
             
@@ -553,7 +553,19 @@
 <a name='L488'></a><a href='#L488'>488</a>
 <a name='L489'></a><a href='#L489'>489</a>
 <a name='L490'></a><a href='#L490'>490</a>
-<a name='L491'></a><a href='#L491'>491</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L491'></a><a href='#L491'>491</a>
+<a name='L492'></a><a href='#L492'>492</a>
+<a name='L493'></a><a href='#L493'>493</a>
+<a name='L494'></a><a href='#L494'>494</a>
+<a name='L495'></a><a href='#L495'>495</a>
+<a name='L496'></a><a href='#L496'>496</a>
+<a name='L497'></a><a href='#L497'>497</a>
+<a name='L498'></a><a href='#L498'>498</a>
+<a name='L499'></a><a href='#L499'>499</a>
+<a name='L500'></a><a href='#L500'>500</a>
+<a name='L501'></a><a href='#L501'>501</a>
+<a name='L502'></a><a href='#L502'>502</a>
+<a name='L503'></a><a href='#L503'>503</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -642,6 +654,15 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
@@ -683,6 +704,9 @@
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -1060,7 +1084,7 @@ const { Notation } = require('notation');
  *
  * @returns A boolean value
  */
-function check({ cron_exp, duration }: { cron_exp: string; duration: number }, options?: { currentDate?: Date; tz?: string }): boolean {
+export function check({ cron_exp, duration }: { cron_exp: string; duration: number }, options?: { currentDate?: Date; tz?: string }): boolean {
   const currentDate = options<span class="branch-0 cbranch-no" title="branch not covered" >?.currentDate<span class="branch-0 cbranch-no" title="branch not covered" > </span>?? n</span>ew Date();
 &nbsp;
   const prevDate = parser.parseExpression(cron_exp, options).prev();
@@ -1117,10 +1141,19 @@ export type Ability&lt;S = string, Act = string, Obj = string&gt; = {
   field?: string[]; // does not affect on grant or deny permission
   filter?: string[]; // does not affect on grant or deny permission
   location?: string[]; // ip or cidr
-  time?: {
-    cron_exp: string; // start cron expression
-    duration: number; // in seconds
-  }[];
+  time?: Time[];
+};
+&nbsp;
+/**
+ * `Time` is an object with two properties, `cron_exp` and `duration`, where `cron_exp` is a string and
+ * `duration` is a number.
+ *
+ * @property {string} cron_exp - This is the cron expression that will be used to start the job.
+ * @property {number} duration - The duration of the job in seconds.
+ */
+export type Time = {
+  cron_exp: string; // start cron expression
+  duration: number; // in seconds
 };
 &nbsp;
 /**
@@ -1140,10 +1173,10 @@ export function filterByNotation&lt;T = unknown | unknown[]&gt;(data: T, notatio
 &nbsp;
 /* It takes a boolean and a PermissionGrant object and returns a Permission object */
 export class Permission&lt;S = string, Act = string, Obj = string&gt; {
+  private times: Time[] | undefined;
   private fields: string[] | undefined;
   private filters: string[] | undefined;
   private locations: string[] | undefined;
-  private times: Ability['time'] | undefined;
 &nbsp;
   /**
    * It checks if the IP address is in the list of allowed locations
@@ -1185,14 +1218,17 @@ export class Permission&lt;S = string, Act = string, Obj = string&gt; {
    * @returns A boolean value.
    */
   public time(options?: { currentDate?: Date; tz?: string }, strict = false): boolean {
-    if (!this.times)
-      this.times = [
-        ...new Set(
-          Object.values(this.grants)
-            .map((g) =&gt; g.ability.time<span class="branch-0 cbranch-no" title="branch not covered" > ?? [])</span>
-            .flat(),
-        ),
-      ];
+    if (!this.times) {
+      const result: { [x: string]: Time } = {};
+&nbsp;
+      for (const time of Object.values(this.grants)
+        .map((g) =&gt; g.ability.time<span class="branch-0 cbranch-no" title="branch not covered" > ?? [])</span>
+        .flat()) {
+        result[`${time.cron_exp}:${time.duration}`] = time;
+      }
+&nbsp;
+      this.times = Object.values(result);
+    }
 &nbsp;
     if (!strict &amp;&amp; !this.times.length) <span class="branch-0 cbranch-no" title="branch not covered" >return true;</span>
 &nbsp;
@@ -1540,7 +1576,7 @@ export default class AccessControl&lt;S = string, Act = string, Obj = string&gt;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2023-01-15T20:12:24.962Z
+                at 2023-01-15T20:40:25.376Z
             </div>
         <script src="prettify.js"></script>
         <script>

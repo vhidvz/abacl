@@ -15,7 +15,7 @@ const { Notation } = require('notation');
  *
  * @returns A boolean value
  */
-function check({ cron_exp, duration }: { cron_exp: string; duration: number }, options?: { currentDate?: Date; tz?: string }): boolean {
+export function check({ cron_exp, duration }: { cron_exp: string; duration: number }, options?: { currentDate?: Date; tz?: string }): boolean {
   const currentDate = options?.currentDate ?? new Date();
 
   const prevDate = parser.parseExpression(cron_exp, options).prev();
@@ -72,10 +72,19 @@ export type Ability<S = string, Act = string, Obj = string> = {
   field?: string[]; // does not affect on grant or deny permission
   filter?: string[]; // does not affect on grant or deny permission
   location?: string[]; // ip or cidr
-  time?: {
-    cron_exp: string; // start cron expression
-    duration: number; // in seconds
-  }[];
+  time?: Time[];
+};
+
+/**
+ * `Time` is an object with two properties, `cron_exp` and `duration`, where `cron_exp` is a string and
+ * `duration` is a number.
+ *
+ * @property {string} cron_exp - This is the cron expression that will be used to start the job.
+ * @property {number} duration - The duration of the job in seconds.
+ */
+export type Time = {
+  cron_exp: string; // start cron expression
+  duration: number; // in seconds
 };
 
 /**
@@ -95,10 +104,10 @@ export function filterByNotation<T = unknown | unknown[]>(data: T, notation: str
 
 /* It takes a boolean and a PermissionGrant object and returns a Permission object */
 export class Permission<S = string, Act = string, Obj = string> {
+  private times: Time[] | undefined;
   private fields: string[] | undefined;
   private filters: string[] | undefined;
   private locations: string[] | undefined;
-  private times: Ability['time'] | undefined;
 
   /**
    * It checks if the IP address is in the list of allowed locations
@@ -140,14 +149,17 @@ export class Permission<S = string, Act = string, Obj = string> {
    * @returns A boolean value.
    */
   public time(options?: { currentDate?: Date; tz?: string }, strict = false): boolean {
-    if (!this.times)
-      this.times = [
-        ...new Set(
-          Object.values(this.grants)
-            .map((g) => g.ability.time ?? [])
-            .flat(),
-        ),
-      ];
+    if (!this.times) {
+      const result: { [x: string]: Time } = {};
+
+      for (const time of Object.values(this.grants)
+        .map((g) => g.ability.time ?? [])
+        .flat()) {
+        result[`${time.cron_exp}:${time.duration}`] = time;
+      }
+
+      this.times = Object.values(result);
+    }
 
     if (!strict && !this.times.length) return true;
 
