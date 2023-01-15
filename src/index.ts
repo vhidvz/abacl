@@ -243,7 +243,6 @@ export type PermissionGrant<S = string, Act = string, Obj = string> = {
 export interface AccessControlOption {
   sep?: string;
   strict?: boolean;
-  checkScope?: [];
 }
 
 /* The Attribute-Based Access Control Main Class */
