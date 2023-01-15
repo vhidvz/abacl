@@ -327,25 +327,30 @@ describe('test access control', () => {
     });
 
     expect(permission.granted).toBeTruthy();
+
+    expect(permission.location('192.168.2.1')).toBeFalsy();
+    expect(permission.location('192.168.1.100')).toBeTruthy();
+    expect(permission.location('192.168.1.200')).toBeTruthy();
+
     expect(permission.grant('.*').location('192.168.2.1')).toBeFalsy();
     expect(permission.grant('.*').location('192.168.1.100')).toBeTruthy();
     expect(permission.grant('.*').location('192.168.1.200')).toBeTruthy();
 
     expect(
       ac.can(['user'], 'create', 'article', (perm) => {
-        return perm.grant('.*').location('192.168.2.100');
+        return perm.location('192.168.2.100') && perm.grant('.*').location('192.168.2.100');
       }).granted,
     ).toBeFalsy();
 
     expect(
       ac.can(['user'], 'read', 'article', (perm) => {
-        return perm.grant('own').location('192.168.2.100');
+        return perm.location('192.168.2.100') && perm.grant('own').location('192.168.2.100');
       }).granted,
     ).toBeTruthy();
 
     expect(
       ac.can(['user'], 'read', 'article', (perm) => {
-        return perm.grant('shared').location('192.168.2.100', true);
+        return perm.location('192.168.2.100', true) && perm.grant('shared').location('192.168.2.100', true);
       }).granted,
     ).toBeFalsy();
   });
@@ -357,7 +362,9 @@ describe('test access control', () => {
       return perm.grant('own').time();
     });
 
+    expect(permission.time()).toBeTruthy();
     expect(permission.granted).toBeTruthy();
+
     expect(permission.grant('.*').time()).toBeTruthy();
   });
 

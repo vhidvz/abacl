@@ -8,6 +8,23 @@ import IP from 'ip-regex';
 const { Notation } = require('notation');
 
 /**
+ * It checks if the current date is between the previous date and the next date.
+ *
+ * @param  - cron_exp: string;
+ * @param  - duration: number;
+ *
+ * @returns A boolean value
+ */
+function check({ cron_exp, duration }: { cron_exp: string; duration: number }, options?: { currentDate?: Date; tz?: string }): boolean {
+  const currentDate = options?.currentDate ?? new Date();
+
+  const prevDate = parser.parseExpression(cron_exp, options).prev();
+  const nextDate = new Date(prevDate.getTime() + duration * 1000);
+
+  return currentDate >= prevDate.toDate() && currentDate < nextDate;
+}
+
+/**
  * It takes an array of arrays of filters, and returns an array of filter
  *
  * @param {string[][]} filters - string[][]
@@ -80,6 +97,62 @@ export function filterByNotation<T = unknown | unknown[]>(data: T, notation: str
 export class Permission<S = string, Act = string, Obj = string> {
   private fields: string[] | undefined;
   private filters: string[] | undefined;
+  private locations: string[] | undefined;
+  private times: Ability['time'] | undefined;
+
+  /**
+   * It checks if the IP address is in the list of allowed locations
+   *
+   * @param {string} ip - The IP address to check.
+   * @param [strict=false] - If true, the user must have a location set. If false, the user can have no
+   * location set.
+   *
+   * @returns A boolean value
+   */
+  public location(ip: string, strict = false): boolean {
+    if (!this.locations)
+      this.locations = [
+        ...new Set(
+          Object.values(this.grants)
+            .map((g) => g.ability.location ?? [])
+            .flat(),
+        ),
+      ];
+
+    if (!strict && !this.locations.length) return true;
+
+    return (
+      isInSubnet(
+        ip,
+        this.locations.filter((e) => CIDR().test(e)),
+      ) || this.locations.includes(ip)
+    );
+  }
+
+  /**
+   * It checks if the current time is within the time range of any of the user's grants
+   *
+   * @param [options] - currentDate?: Date; tz?: string
+   *
+   * @param [strict=false] - If true, the user must have at least one time restriction. If false, the
+   * user can have no time restrictions.
+   *
+   * @returns A boolean value.
+   */
+  public time(options?: { currentDate?: Date; tz?: string }, strict = false): boolean {
+    if (!this.times)
+      this.times = [
+        ...new Set(
+          Object.values(this.grants)
+            .map((g) => g.ability.time ?? [])
+            .flat(),
+        ),
+      ];
+
+    if (!strict && !this.times.length) return true;
+
+    return this.times.some((time) => check(time, options));
+  }
 
   /**
    * It takes a data object and returns a filtered version of it based on the fields that the user is
@@ -336,30 +409,11 @@ export default class AccessControl<S = string, Act = string, Obj = string> {
         );
       },
       /* Checking if the current date is within the availability of the `ability.time`. */
-      time(available?: { date?: Date; tz?: string }, strict = false): boolean {
+      time(options?: { currentDate?: Date; tz?: string }, strict = false): boolean {
         const time = ability.time ?? [];
         if (!strict && !time.length) return true;
 
-        const options = {
-          currentDate: available?.date ?? new Date(),
-        };
-        if (available?.tz) Object.assign(options, { tz: available.tz });
-
-        /**
-         * It checks if the current date is between the previous date and the next date.
-         *
-         * @param  - cron_exp: string;
-         * @param  - duration: number;
-         *
-         * @returns A boolean value
-         */
-        function check({ cron_exp, duration }: { cron_exp: string; duration: number }): boolean {
-          const prevDate = parser.parseExpression(cron_exp, options).prev();
-          const nextDate = new Date(prevDate.getTime() + duration * 1000);
-          return options.currentDate >= prevDate.toDate() && options.currentDate < nextDate;
-        }
-
-        return time.some(check);
+        return time.some((time) => check(time, options));
       },
       ability,
     };

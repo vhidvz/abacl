@@ -179,6 +179,7 @@ import { Permission } from 'abacl';
 const ac = new AccessControl(abilities, { strict: true });
 
 const permission = ac.can([user.subject], 'create', 'article', (perm: Permission) => {
+  return perm.location(user.ip) && perm.time(); // OR Alternative Method
   return perm.grant('own').location(user.ip) && perm.grant('own').time();
 });
 
