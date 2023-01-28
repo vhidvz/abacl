@@ -1,4 +1,4 @@
-import AccessControl, { Ability, accumulate } from '../src';
+import AccessControl, { Ability, Permission, accumulate } from '../src';
 
 enum Role {
   Admin = 'admin',
@@ -397,5 +397,16 @@ describe('test access control', () => {
 
     expect(acc0).toEqual(['*', 'owner', 'status', 'test', 'any', '!id']);
     expect(acc1).toEqual(['*', 'test', 'any', 'owner', 'status', '!id']);
+  });
+
+  it('should have build permission from abilities', () => {
+    const ac = new AccessControl(abilities);
+
+    const perm = ac.can([Role.Guest, Role.User], 'read', 'article');
+
+    const permission = Permission.build(perm.granted, perm.abilities());
+
+    expect(permission).toEqual(perm);
+    expect(permission).toStrictEqual(perm);
   });
 });

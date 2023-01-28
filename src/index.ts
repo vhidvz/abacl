@@ -241,8 +241,8 @@ export class Permission<S = string, Act = string, Obj = string> {
    *
    * @returns A Grant object
    */
-  public grant(pattern?: string): Grant<S, Act, Obj> {
-    if (!pattern) pattern = 'any:all';
+  public grant(pattern?: string, sep = ':'): Grant<S, Act, Obj> {
+    if (!pattern) pattern = `any${sep}all`;
     if (!this.has(pattern)) throw new Error(`No grant found for pattern ${pattern}`);
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.grants[Object.keys(this.grants).find((k) => RegExp(pattern!).test(k)) ?? pattern];
@@ -292,33 +292,136 @@ export class Permission<S = string, Act = string, Obj = string> {
   public abilities(): Ability<S, Act, Obj>[] {
     return Object.values(this.grants).map((g) => g.ability);
   }
+
+  /**
+   * It takes an array of abilities, and returns a permission object
+   *
+   * @param {boolean} granted - boolean - whether the permission is granted or not.
+   * @param {Ability<S, Act, Obj>[]} abilities - An array of Ability objects.
+   * @param [sep=:] - The separator used to split the action and object.
+   *
+   * @returns A Permission object
+   */
+  public static build<S = string, Act = string, Obj = string>(granted: boolean, abilities: Ability<S, Act, Obj>[], sep = ':'): Permission<S, Act, Obj> {
+    const grants: PermissionGrant<S, Act, Obj> = abilities
+      .map((ability) => {
+        new AccessControl<S, Act, Obj>().validate(ability);
+
+        const action = (ability.action as unknown as string).split(sep);
+        const object = (ability.object as unknown as string).split(sep);
+
+        const scopeKey = `${action[1] ?? 'any'}${sep}${object[1] ?? 'all'}`;
+
+        return { [scopeKey]: Grant.build<S, Act, Obj>(ability) };
+      })
+      .reduce((prev, curr) => ({ ...prev, ...curr }), {});
+
+    return new Permission<S, Act, Obj>(granted, grants);
+  }
 }
 
 /* Defining the interface for the Grant object. */
-export interface Grant<S = string, Act = string, Obj = string> {
+export class Grant<S = string, Act = string, Obj = string> {
   readonly subject: S;
   readonly action: Act | 'any';
   readonly object: Obj | 'all';
-  /* A function that takes two parameters, data and deep_copy. The data parameter is of type T,
-  which is a generic type. The deep_copy parameter is of type boolean and has a default value of
-  false. The function returns a Partial<T> or Partial<T>[] */
-  field: <T = unknown | unknown[]>(data: T, deep_copy?: boolean) => Partial<T> | Partial<T>[];
-  /* A function that takes two parameters, data and deep_copy. The data parameter is of type T,
-  which is a generic type. The deep_copy parameter is of type boolean and has a default value of
-  false. The function returns a Partial<T> or Partial<T>[] */
-  filter: <T = unknown | unknown[]>(data: T, deep_copy?: boolean) => Partial<T> | Partial<T>[];
-  /* A function that takes in an IP address and returns a boolean. */
-  location: (ip: string, strict?: boolean) => boolean;
-  /* A function that takes in an object with a date and timezone and returns a boolean. */
-  time: (available?: { date?: Date; tz?: string }, strict?: boolean) => boolean;
-  /* Defining a generic type called Ability. It takes three type parameters: S, Act, and Obj. */
-  ability: Ability<S, Act, Obj>;
+
+  readonly ability: Ability<S, Act, Obj>;
+
+  /**
+   * The constructor function takes an ability object and sets the ability, action, object, and subject
+   * properties of the new instance to the corresponding properties of the ability object
+   *
+   * @param ability - Ability<S, Act, Obj>
+   */
+  constructor(ability: Ability<S, Act, Obj>) {
+    this.ability = ability;
+
+    this.action = ability.action;
+    this.object = ability.object;
+    this.subject = ability.subject;
+  }
+
+  /**
+   * It takes a data object and returns a filtered version of it based on the field notation
+   *
+   * @param {T} data - The data to filter.
+   * @param [deep_copy=false] - If true, the returned data will be a deep copy of the original data.
+   *
+   * @returns The return type is a Partial<T> | Partial<T>[].
+   */
+  field<T = unknown | unknown[]>(data: T, deep_copy = false): Partial<T> | Partial<T>[] {
+    return filterByNotation<T>(data, this.ability.field ?? ['*'], deep_copy);
+  }
+
+  /**
+   * It takes a data object and returns a filtered version of it based on the filter notation
+   *
+   * @param {T} data - The data to be filtered.
+   * @param [deep_copy=false] - If true, the data will be deep copied before filtering.
+   *
+   * @returns A partial of the data that is passed in.
+   */
+  filter<T = unknown | unknown[]>(data: T, deep_copy = false): Partial<T> | Partial<T>[] {
+    return filterByNotation<T>(data, this.ability.filter ?? ['*'], deep_copy);
+  }
+
+  /**
+   * It checks if the IP address is in the list of allowed IP addresses
+   *
+   * @param {string} ip - The IP address to check.
+   * @param [strict=false] - If true, the user must be in the location list. If false, the user must be
+   * in the location list or the list must be empty.
+   *
+   * @returns A boolean value.
+   */
+  location(ip: string, strict = false): boolean {
+    const location = this.ability.location ?? [];
+    if (!strict && !location.length) return true;
+    return (
+      isInSubnet(
+        ip,
+        location.filter((e) => CIDR().test(e)),
+      ) || location.includes(ip)
+    );
+  }
+
+  /**
+   * If the ability has a time property, check if the current time matches any of the time objects in
+   * the array
+   *
+   * @param [options] - An object with the following properties:
+   * @param [strict=false] - If true, the ability will only be active if the time is explicitly set. If
+   * false, the ability will be active if the time is not explicitly set.
+   *
+   * @returns A boolean value.
+   */
+  time(options?: { currentDate?: Date; tz?: string }, strict = false): boolean {
+    const time = this.ability.time ?? [];
+    if (!strict && !time.length) return true;
+
+    return time.some((time) => check(time, options));
+  }
+
+  /**
+   * "This function takes an ability and returns a grant."
+   *
+   * The function is generic, which means that it can be used with any ability. The generic parameters
+   * are the types of the ability's subject, action, and object
+   *
+   * @param ability - The ability to grant.
+   *
+   * @returns A new Grant object.
+   */
+  public static build<S = string, Act = string, Obj = string>(ability: Ability<S, Act, Obj>) {
+    return new Grant<S, Act, Obj>(ability);
+  }
 }
 
 /**
  * `PermissionGrant` is an object whose keys are strings and whose values are `Grant`s.
  *
- * @property [key: undefined] - Grant<S, Act, Obj>;
+ * @property [key: string] - Grant<S, Act, Obj>;
  */
 export type PermissionGrant<S = string, Act = string, Obj = string> = {
   [key: string]: Grant<S, Act, Obj>;
@@ -397,38 +500,7 @@ export default class AccessControl<S = string, Act = string, Obj = string> {
 
     if (!this._abilities[superKey]) this._abilities[superKey] = {};
 
-    this._abilities[superKey][scopeKey] = {
-      subject,
-      action: ability.action,
-      object: ability.object,
-      /* A function that takes in a data object and returns a partial of the data. */
-      field<T = unknown | unknown[]>(data: T, deep_copy = false): Partial<T> | Partial<T>[] {
-        return filterByNotation<T>(data, ability.field ?? ['*'], deep_copy);
-      },
-      /* Filtering the data based on the ability.filter notation. */
-      filter<T = unknown | unknown[]>(data: T, deep_copy = false): Partial<T> | Partial<T>[] {
-        return filterByNotation<T>(data, ability.filter ?? ['*'], deep_copy);
-      },
-      /* Checking if the IP address is in the subnet or not. */
-      location(ip: string, strict = false): boolean {
-        const location = ability.location ?? [];
-        if (!strict && !location.length) return true;
-        return (
-          isInSubnet(
-            ip,
-            location.filter((e) => CIDR().test(e)),
-          ) || location.includes(ip)
-        );
-      },
-      /* Checking if the current date is within the availability of the `ability.time`. */
-      time(options?: { currentDate?: Date; tz?: string }, strict = false): boolean {
-        const time = ability.time ?? [];
-        if (!strict && !time.length) return true;
-
-        return time.some((time) => check(time, options));
-      },
-      ability,
-    };
+    this._abilities[superKey][scopeKey] = Grant.build<S, Act, Obj>(ability);
   }
 
   /**
