@@ -335,7 +335,8 @@ export class Grant<S = string, Act = string, Obj = string> {
    * @param ability - Ability<S, Act, Obj>
    */
   constructor(ability: Ability<S, Act, Obj>) {
-    this.ability = ability;
+    const { action, object, subject, field, filter, location, time } = ability;
+    this.ability = { action, object, subject, field, filter, location, time };
 
     this.action = ability.action;
     this.object = ability.object;

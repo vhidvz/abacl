@@ -67,7 +67,7 @@ describe('test access control', () => {
     const ac = new AccessControl(abilities);
     const perm = ac.can([Role.Admin], 'any', 'all');
 
-    expect(perm.abilities()).toStrictEqual([abilities[0]]);
+    expect(perm.abilities()).toMatchObject([abilities[0]]);
   });
 
   it('should throw error on invalid update', () => {
