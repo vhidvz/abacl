@@ -144,12 +144,12 @@ if (permission.granted) {
   // default scope for action and object is `any` and `all`
 
   if (permission.has('own')) {
-    // Or pattern '.*:own'
+    // Or pattern 'own:.*'
     // user has read owned article objects
   }
 
   if (permission.has('shared')) {
-    // Or pattern '.*:shared'
+    // Or pattern 'shared:.*'
     // user can access shared article objects
   }
 
