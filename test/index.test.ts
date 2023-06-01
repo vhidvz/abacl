@@ -116,6 +116,8 @@ describe('test access control', () => {
     expect(ac.can([Role.Admin], 'read', 'all').granted).toBeTruthy();
     expect(ac.can([Role.Admin], 'any', 'article').granted).toBeTruthy();
     expect(ac.can([Role.Admin], 'read', 'article').granted).toBeTruthy();
+    expect(ac.can([Role.Admin], 'read', 'article:published').granted).toBeTruthy();
+    expect(ac.can([Role.Admin], 'read:own', 'article:published').granted).toBeTruthy();
 
     // check non scoped access without callable for guest
     expect(ac.can([Role.Guest], 'any', 'all').granted).toBeFalsy();

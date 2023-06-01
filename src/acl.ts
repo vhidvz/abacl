@@ -4,7 +4,7 @@ import CIDR from 'cidr-regex';
 import { isValidCron } from 'cron-validator';
 import { Grant } from './grant';
 import { Permission } from './permission';
-import { AbilityRegex, GrantRegex, NameRegex } from './utils';
+import { AbilityRegex, GrantRegex } from './utils';
 
 /* The Attribute-Based Access Control Main Class */
 export class AccessControl<S = string, Act = string, Obj = string> {
@@ -124,7 +124,7 @@ export class AccessControl<S = string, Act = string, Obj = string> {
 
     const scopePerm = subjects.flatMap((s) =>
       Object.entries(this._abilities)
-        .filter(([key]) => AbilityRegex({ subject: `${s}`, action: `(${_action[0]}|any)`, object: `(${_object[0]}|all)`, sep }).test(key))
+        .filter(([key]) => AbilityRegex({ subject: `${s}`, action: `${_action[0]}`, object: `${_object[0]}`, sep }).test(key))
         .map((a) => a[1]),
     );
     const grants = scopePerm.reduce((prev, curr) => ({ ...prev, ...curr }), {});
@@ -133,9 +133,13 @@ export class AccessControl<S = string, Act = string, Obj = string> {
 
     if (granted && strict === true && (_action[1] || _object[1])) {
       console.log(grants, _action[1], _object[1]);
-      const action = _action[1] ? `(${_action[1]}|any)` : undefined;
-      granted &&= Object.keys(grants).some((k) => GrantRegex({ action, sep }).test(k));
-      const object = _object[1] ? `(${_object[1]}|all)` : undefined;
+      const obj = _object[1];
+      const act = _action[1];
+      granted &&= Object.keys(grants).some((k) => GrantRegex({ action: act, object: obj, sep }).test(k));
+
+      if (obj) {
+        granted &&= Object.values(grants).some((g) => [object, 'all'].includes(g.object) && [action, 'any'].includes(g.action));
+      }
     }
 
     if (granted && callable) granted &&= !!callable(new Permission<S, Act, Obj>(granted, grants));

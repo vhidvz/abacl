@@ -5,8 +5,8 @@ const { Notation } = require('notation');
 export const NameRegex = '[a-zA-Z_][\\w-]*\\w';
 
 export const GrantRegex = (options: { sep?: string; action?: string; object?: string }) => {
-  const object = options.object ?? NameRegex;
-  const action = options.action ?? NameRegex;
+  const object = options.object ? `(${options.object}|all)` : NameRegex;
+  const action = options.action ? `(${options.action}|any)` : NameRegex;
   const sep = options.sep ?? ':';
 
   return RegExp(`^${action}${sep}${object}$`);
@@ -14,8 +14,8 @@ export const GrantRegex = (options: { sep?: string; action?: string; object?: st
 
 export const AbilityRegex = (options: { sep?: string; subject?: string; action?: string; object?: string }) => {
   const subject = options.subject ?? NameRegex;
-  const object = options.object ?? NameRegex;
-  const action = options.action ?? NameRegex;
+  const object = options.object ? `(${options.object}|all)` : NameRegex;
+  const action = options.action ? `(${options.action}|any)` : NameRegex;
 
   const sep = options.sep ?? ':';
 
