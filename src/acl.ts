@@ -1,10 +1,11 @@
-import IP from 'ip-regex';
-import { Ability, AccessControlOption, PermissionGrant } from './interface';
-import CIDR from 'cidr-regex';
 import { isValidCron } from 'cron-validator';
-import { Grant } from './grant';
-import { Permission } from './permission';
+import CIDR from 'cidr-regex';
+import IP from 'ip-regex';
+
+import { Ability, AccessControlOption, PermissionGrant } from './interface';
 import { AbilityRegex, GrantRegex } from './utils';
+import { Permission } from './permission';
+import { Grant } from './grant';
 
 /* The Attribute-Based Access Control Main Class */
 export class AccessControl<S = string, Act = string, Obj = string> {
