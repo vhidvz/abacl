@@ -132,7 +132,6 @@ export class AccessControl<S = string, Act = string, Obj = string> {
     let granted = !!Object.keys(grants).length;
 
     if (granted && strict === true && (_action[1] || _object[1])) {
-      console.log(grants, _action[1], _object[1]);
       const obj = _object[1];
       const act = _action[1];
       granted &&= Object.keys(grants).some((k) => GrantRegex({ action: act, object: obj, sep }).test(k));
@@ -144,8 +143,6 @@ export class AccessControl<S = string, Act = string, Obj = string> {
 
     if (granted && callable) granted &&= !!callable(new Permission<S, Act, Obj>(granted, grants));
 
-    // if (!granted)
-    // console.log(hasAny, hasAll, '====', subjects, action, object, granted, grants, this._abilities);
     return new Permission<S, Act, Obj>(granted, grants);
   }
 }
