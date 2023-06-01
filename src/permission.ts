@@ -166,6 +166,8 @@ export class Permission<S = string, Act = string, Obj = string> {
    * @returns A boolean value.
    */
   public hasScopeAny(sep = ':'): boolean {
+    // console.log(this.grants, GrantRegex({ action: 'any', sep, strict: true }));
+
     return Object.keys(this.grants).some((k) => GrantRegex({ action: 'any', sep }).test(k));
   }
 
@@ -184,6 +186,7 @@ export class Permission<S = string, Act = string, Obj = string> {
    * @returns A boolean value.
    */
   public hasScopeAll(sep = ':'): boolean {
+    // console.log(this.grants, GrantRegex({ object: 'all', sep }));
     return Object.keys(this.grants).some((k) => GrantRegex({ object: 'all', sep }).test(k));
   }
 
@@ -214,7 +217,7 @@ export class Permission<S = string, Act = string, Obj = string> {
         const object = (ability.object as unknown as string).split(sep);
 
         const scopeKey = `${action[1] ?? 'any'}${sep}${object[1] ?? 'all'}`;
-        console.log(scopeKey);
+        // console.log(scopeKey);
 
         return { [scopeKey]: Grant.build<S, Act, Obj>(ability) };
       })

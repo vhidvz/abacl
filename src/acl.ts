@@ -4,7 +4,7 @@ import CIDR from 'cidr-regex';
 import { isValidCron } from 'cron-validator';
 import { Grant } from './grant';
 import { Permission } from './permission';
-import { GrantRegex, NameRegex } from './utils';
+import { AbilityRegex, GrantRegex, NameRegex } from './utils';
 
 /* The Attribute-Based Access Control Main Class */
 export class AccessControl<S = string, Act = string, Obj = string> {
@@ -122,29 +122,26 @@ export class AccessControl<S = string, Act = string, Obj = string> {
     const _action = (action as unknown as string).split(sep);
     const _object = (object as unknown as string).split(sep);
 
-    const hasAnys = subjects.some((s) => Object.keys(this._abilities).some((k) => RegExp(`${s}${sep}any${sep}.*`).test(k)));
-    const hasAny = subjects.some((s) => Object.keys(this._abilities).some((k) => GrantRegex({ object: `${s}`, action: 'any', strict: false, sep }).test(k)));
-    const hasAlls = subjects.some((s) => Object.keys(this._abilities).some((k) => RegExp(`${s}${sep}.*${sep}all`).test(k)));
-    const hasAll = subjects.some((s) => Object.keys(this._abilities).some((k) => GrantRegex({ object: `${s}`, strict: true, scope: 'all', sep }).test(k)));
-
-    const superKeys = subjects.map((s) => `${s}${sep}${hasAny ? NameRegex : _action[0]}${sep}${hasAll ? NameRegex : _object[0]}`);
-
-    const scopePerm = superKeys.map((k) => this._abilities[Object.keys(this._abilities).find((_k) => RegExp(k).test(_k)) ?? k]);
-
+    const scopePerm = subjects.flatMap((s) =>
+      Object.entries(this._abilities)
+        .filter(([key]) => AbilityRegex({ subject: `${s}`, action: `(${_action[0]}|any)`, object: `(${_object[0]}|all)`, sep }).test(key))
+        .map((a) => a[1]),
+    );
     const grants = scopePerm.reduce((prev, curr) => ({ ...prev, ...curr }), {});
 
-    const hasScopeAny = Object.keys(grants).some((k) => GrantRegex({ action: 'any', sep }).test(k));
-    const hasScopeAll = Object.keys(grants).some((k) => GrantRegex({ object: 'all', sep }).test(k));
-
-    let granted = !!Object.keys(grants).length || (hasAny && hasAll) || (hasScopeAny && hasScopeAll);
+    let granted = !!Object.keys(grants).length;
 
     if (granted && strict === true && (_action[1] || _object[1])) {
-      granted &&= Object.keys(grants).some((k) => GrantRegex({ object: _object[1], action: _action[1], sep, strict }).test(k));
+      console.log(grants, _action[1], _object[1]);
+      const action = _action[1] ? `(${_action[1]}|any)` : undefined;
+      granted &&= Object.keys(grants).some((k) => GrantRegex({ action, sep }).test(k));
+      const object = _object[1] ? `(${_object[1]}|all)` : undefined;
     }
 
     if (granted && callable) granted &&= !!callable(new Permission<S, Act, Obj>(granted, grants));
 
-    if (!granted) console.log('====', subjects, superKeys, scopePerm, grants);
+    // if (!granted)
+    // console.log(hasAny, hasAll, '====', subjects, action, object, granted, grants, this._abilities);
     return new Permission<S, Act, Obj>(granted, grants);
   }
 }

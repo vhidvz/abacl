@@ -19,6 +19,11 @@ const abilities: Ability<Role>[] = [
     object: 'article:published',
   },
   {
+    subject: Role.Guest,
+    action: 'create:own',
+    object: 'article:published',
+  },
+  {
     subject: Role.Manager,
     action: 'any',
     object: 'article',
@@ -88,6 +93,8 @@ describe('test access control', () => {
     expect(ac.can([Role.Guest], 'read', 'article').granted).toBeTruthy();
 
     expect(ac.can([Role.User], 'read', 'article').granted).toBeTruthy();
+    // console.log(ac.can([Role.User], 'read:own', 'article').grants);
+
     expect(ac.can([Role.User], 'read:own', 'article').granted).toBeTruthy();
     expect(ac.can([Role.User], 'read', 'article:published').granted).toBeFalsy();
   });
