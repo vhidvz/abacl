@@ -2,5 +2,5 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "jest.jestCommandLine": "npm run test"
+  "cSpell.words": ["abacl", "consts"]
 }
