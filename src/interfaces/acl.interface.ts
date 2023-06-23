@@ -1,9 +1,14 @@
-import { Permission } from './permission.interface';
+import { IPermission } from './permission.interface';
 import { ANY, ALL } from '../consts';
 
 export interface Time {
   cron_exp: string;
   duration: number;
+}
+
+export interface TimeOptions {
+  currentDate?: Date;
+  tz?: string;
 }
 
 export interface Policy<Sub = string, Act = string, Obj = string> {
@@ -27,10 +32,10 @@ export type AccessControlOptions = ControlOptions;
 export interface AccessControlCanOptions<Sub = string, Act = string, Obj = string> {
   strict?: boolean;
   deep_copy?: boolean;
-  callable?: (perm: Permission<Sub, Act, Obj>) => boolean;
+  callable?: (perm: IPermission<Sub, Act, Obj>) => boolean;
 }
 
-export interface AccessControl<Sub = string, Act = string, Obj = string> {
-  can(subject: Sub[], action: Act, object: Obj, options?: AccessControlCanOptions<Sub, Act, Obj>): Permission<Sub, Act, Obj>;
+export interface IAccessControl<Sub = string, Act = string, Obj = string> {
+  can(subjects: Sub[], action: Act, object: Obj, options?: AccessControlCanOptions<Sub, Act, Obj>): IPermission<Sub, Act, Obj>;
 }
-export type AccessControlInterface<Sub = string, Act = string, Obj = string> = AccessControl<Sub, Act, Obj>;
+export type AccessControlInterface<Sub = string, Act = string, Obj = string> = IAccessControl<Sub, Act, Obj>;

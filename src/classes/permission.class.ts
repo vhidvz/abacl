@@ -1,4 +1,5 @@
-import { PermissionInterface, PolicyPattern } from '../interfaces';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { PermissionInterface, PolicyPattern, TimeOptions } from '../interfaces';
 import { Grant } from './grant.class';
 
 export class Permission<Sub = string, Act = string, Obj = string> implements PermissionInterface<Sub, Act, Obj> {
@@ -10,23 +11,31 @@ export class Permission<Sub = string, Act = string, Obj = string> implements Per
     this.grant = grant;
   }
 
-  get policies() {
-    return this.grant.policies;
+  has(pattern: PolicyPattern): boolean {
+    return this.grant.has(pattern);
   }
 
-  get(pattern?: PolicyPattern): Permission<Sub, Act, Obj> {
-    throw new Error('Method not implemented.');
-  }
-  has(pattern?: PolicyPattern): boolean {
-    throw new Error('Method not implemented.');
-  }
   subjects(pattern?: PolicyPattern): Sub[] {
-    throw new Error('Method not implemented.');
+    return this.grant.subjects(pattern);
   }
-  field<T = any>(data: any, pattern?: PolicyPattern): T {
-    throw new Error('Method not implemented.');
+
+  time(pattern?: PolicyPattern, options?: TimeOptions): boolean {
+    return this.grant.time(pattern, options);
   }
-  filter<T = any>(data: any, pattern?: PolicyPattern): T {
-    throw new Error('Method not implemented.');
+
+  location(ip: string, pattern?: PolicyPattern): boolean {
+    return this.grant.location(ip, pattern);
+  }
+
+  field<T = any>(data: any, pattern?: PolicyPattern, deep_copy?: boolean): T {
+    return this.grant.field<T>(data, pattern, deep_copy);
+  }
+
+  filter<T = any>(data: any, pattern?: PolicyPattern, deep_copy?: boolean): T {
+    return this.grant.filter<T>(data, pattern, deep_copy);
+  }
+
+  get policies() {
+    return this.grant.policies;
   }
 }

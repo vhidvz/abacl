@@ -1,9 +1,8 @@
-import { AccessControl } from './acl';
+import { AccessControl } from './classes';
 
-export * from './acl';
-export * from './grant';
-export * from './interface';
-export * from './permission';
 export * from './utils';
+export * from './consts';
+export * from './classes';
+export * from './interfaces';
 
 export default AccessControl;

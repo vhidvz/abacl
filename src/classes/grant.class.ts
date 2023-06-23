@@ -1,5 +1,8 @@
-import { ControlOptions, GrantInterface, Policy, PolicyPattern } from '../interfaces';
-import { filterByNotation, key, log, validate } from '../utils';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { isInSubnet } from 'is-in-subnet';
+
+import { ControlOptions, GrantInterface, Policy, PolicyPattern, Time, TimeOptions } from '../interfaces';
+import { accessibility, accumulate, filterByNotation, isCIDR, key, log, validate } from '../utils';
 import { POLICY_NOTATION, SEP, STRICT } from '../consts';
 
 export class Grant<Sub = string, Act = string, Obj = string> implements GrantInterface<Sub, Act, Obj> {
@@ -25,33 +28,139 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
     return Object.values(this.present);
   }
 
-  get(pattern?: PolicyPattern): Grant<Sub, Act, Obj> {
-    if (!pattern || !Object.keys(pattern).length) return this;
+  has(pattern: PolicyPattern): boolean {
+    if (!Object.keys(pattern).length) throw new Error('Pattern is required');
 
-    // for (const type in pattern) {
-    //   if (type === 'subject') val.scope = val.scope ?? NULL;
-    //   else if (type === 'action') val.scope = val.scope ?? ANY;
-    //   else if (type === 'object') val.scope = val.scope ?? ALL;
-    //   else throw new Error('Pattern type is not valid');
-    // }
+    const { subject, action, object } = pattern;
+    const policies = Object.values(this.present);
+    if (subject) return policies.some((p) => RegExp(subject).test(p.subject as string));
+    if (action) return policies.some((p) => RegExp(action).test(p.action as string));
+    if (object) return policies.some((p) => RegExp(object).test(p.object as string));
 
-    throw new Error('Method not implemented.');
-  }
-
-  has(pattern?: PolicyPattern): boolean {
-    throw new Error('Method not implemented.');
+    return false;
   }
 
   subjects(pattern?: PolicyPattern): Sub[] {
-    throw new Error('Method not implemented.');
+    const policies = Object.values(this.present);
+
+    if (!pattern || !Object.keys(pattern).length) return policies.map((p) => p.subject);
+
+    const subjects: Sub[] = [];
+    const { subject, action, object } = pattern;
+    if (subject) subjects.push(...policies.filter((p) => RegExp(subject).test(p.subject as string)).map((p) => p.subject));
+    if (action) subjects.push(...policies.filter((p) => RegExp(action).test(p.action as string)).map((p) => p.subject));
+    if (object) subjects.push(...policies.filter((p) => RegExp(object).test(p.object as string)).map((p) => p.subject));
+
+    return subjects;
   }
 
-  field<T>(data: any, pattern?: PolicyPattern): T {
-    throw new Error('Method not implemented.');
+  time(pattern?: PolicyPattern, options?: TimeOptions): boolean {
+    const policies = Object.values(this.present);
+
+    const sep = this.options.sep ?? SEP;
+    const times: Record<string, Time> = {};
+    if (!pattern || !Object.keys(pattern).length) {
+      for (const time of policies.filter((p) => p.time?.length).map((p) => p.time))
+        time?.forEach((t) => t && (times[`${t.cron_exp}${sep}${t.duration}`] = t));
+    } else {
+      const add = (regex: RegExp, prop: 'subject' | 'action' | 'object') => {
+        policies
+          .filter((p) => regex.test(p[prop] as string))
+          .map((p) => p.time)
+          .flat()
+          .forEach((t) => t && (times[`${t.cron_exp}${sep}${t.duration}`] = t));
+      };
+
+      const { subject, action, object } = pattern;
+      if (subject) add(RegExp(subject), 'subject');
+      if (action) add(RegExp(action), 'action');
+      if (object) add(RegExp(object), 'object');
+    }
+
+    if (!Object.keys(times).length) return true;
+    else return Object.values(times).some((t) => accessibility(t, options));
   }
 
-  filter<T>(data: any, pattern?: PolicyPattern): T {
-    throw new Error('Method not implemented.');
+  location(ip: string, pattern?: PolicyPattern): boolean {
+    const policies = Object.values(this.present);
+
+    const locations = new Set<string>([]);
+    if (!pattern || !Object.keys(pattern).length) {
+      for (const location of policies.filter((p) => p.location?.length).map((p) => p.location))
+        location?.forEach((l) => l && locations.add(l));
+    } else {
+      const add = (regex: RegExp, prop: 'subject' | 'action' | 'object') => {
+        policies
+          .filter((p) => regex.test(p[prop] as string))
+          .map((p) => p.location)
+          .flat()
+          .forEach((l) => l && locations.add(l));
+      };
+
+      const { subject, action, object } = pattern;
+      if (subject) add(RegExp(subject), 'subject');
+      if (action) add(RegExp(action), 'action');
+      if (object) add(RegExp(object), 'object');
+    }
+
+    if (!locations.size) return true;
+    else
+      return (
+        isInSubnet(
+          ip,
+          [...locations].filter((l) => isCIDR(l)),
+        ) || locations.has(ip)
+      );
+  }
+
+  field<T>(data: any, pattern?: PolicyPattern, deep_copy = false): T {
+    const policies = Object.values(this.present);
+
+    const fields: string[][] = [];
+    if (!pattern || !Object.keys(pattern).length) {
+      for (const field of policies.filter((p) => p.field?.length).map((p) => p.field)) field && fields.push(field);
+    } else {
+      const add = (regex: RegExp, prop: 'subject' | 'action' | 'object') => {
+        policies
+          .filter((p) => regex.test(p[prop] as string))
+          .map((p) => p.field)
+          .forEach((f) => f && fields.push(f));
+      };
+
+      const { subject, action, object } = pattern;
+      if (subject) add(RegExp(subject), 'subject');
+      if (action) add(RegExp(action), 'action');
+      if (object) add(RegExp(object), 'object');
+    }
+
+    const notations = accumulate(...fields);
+    if (!notations.length) return filterByNotation(data, ['*'], deep_copy) as T;
+    else return filterByNotation(data, notations, deep_copy) as T;
+  }
+
+  filter<T>(data: any, pattern?: PolicyPattern, deep_copy = false): T {
+    const policies = Object.values(this.present);
+
+    const filters: string[][] = [];
+    if (!pattern || !Object.keys(pattern).length) {
+      for (const filter of policies.filter((p) => p.filter?.length).map((p) => p.filter)) filter && filters.push(filter);
+    } else {
+      const add = (regex: RegExp, prop: 'subject' | 'action' | 'object') => {
+        policies
+          .filter((p) => regex.test(p[prop] as string))
+          .map((p) => p.filter)
+          .forEach((f) => f && filters.push(f));
+      };
+
+      const { subject, action, object } = pattern;
+      if (subject) add(RegExp(subject), 'subject');
+      if (action) add(RegExp(action), 'action');
+      if (object) add(RegExp(object), 'object');
+    }
+
+    const notations = accumulate(...filters);
+    if (!notations.length) return filterByNotation(data, ['*'], deep_copy) as T;
+    else return filterByNotation(data, notations, deep_copy) as T;
   }
 
   update(policy: Policy<Sub, Act, Obj>, deep_copy = true) {
