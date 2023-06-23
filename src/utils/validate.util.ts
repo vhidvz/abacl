@@ -1,15 +1,15 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { isValidCron } from 'cron-validator';
-import { v4, v6 } from 'cidr-regex';
-import ipRegex from 'ip-regex';
 
+import { cidrRegex, ipRegex } from './regex.util';
 import { Policy } from '../interfaces';
 
 export function isIP(str: string): boolean {
-  return ipRegex({ exact: true }).test(str);
+  return ipRegex.test(str);
 }
 
 export function isCIDR(str: string): boolean {
-  return v4({ exact: true }).test(str) || v6({ exact: true }).test(str);
+  return cidrRegex.test(str);
 }
 
 export function IP_CIDR(str: string): boolean {
@@ -24,6 +24,6 @@ export function validate<Sub = string, Act = string, Obj = string>(policy: Polic
   const { subject, action, object, location, time } = policy;
 
   if (!subject || !action || !object) throw new Error('Policy is not valid');
-  if (!location?.every((l) => IP_CIDR(l))) throw new Error('Policy location is not valid');
-  if (!time?.every((t) => isCRON(t.cron_exp) && t.duration > 0)) throw new Error('Policy time is not valid');
+  if (location?.length && !location?.every((l) => IP_CIDR(l))) throw new Error('Policy location is not valid');
+  if (time?.length && !time?.every((t) => isCRON(t.cron_exp) && t.duration > 0)) throw new Error('Policy time is not valid');
 }

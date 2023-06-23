@@ -2,10 +2,12 @@
 import { ALL, ANY, NULL, SEP, STRICT } from '../consts';
 import { ControlOptions, Policy } from '../interfaces';
 
-export function parse(val: any, sep: string = SEP): { main: string; scope?: string } {
-  if (typeof val !== 'string') throw new Error('Value is not parsable');
+type Type = 'subject' | 'action' | 'object';
 
-  const [main, scope] = val.split(sep);
+export function parse(str: any, sep: string = SEP): { main: string; scope?: string } {
+  if (typeof str !== 'string') throw new Error('Value is not parsable');
+
+  const [main, scope] = str.split(sep);
   return { main, scope };
 }
 
@@ -17,13 +19,26 @@ export function scope(str: string, options?: ControlOptions) {
   return options.strict ? str : `.+[^${options.sep}]`;
 }
 
-export function pattern(val: { main: string; scope?: string }, type: 'subject' | 'action' | 'object', options?: ControlOptions) {
+export function pattern(val: { main: string; scope?: string }, type: Type, options?: ControlOptions) {
   if (type === 'subject') val.scope = val.scope ?? NULL;
   else if (type === 'action') val.scope = val.scope ?? ANY;
   else if (type === 'object') val.scope = val.scope ?? ALL;
   else throw new Error('Pattern type is not valid');
 
-  return `${val.main}${options?.sep ?? SEP}${scope(val.scope, options ?? {})}`;
+  return `${val.main}${options?.sep ?? SEP}${scope(val.scope, options)}`;
+}
+
+export function normalize(str: any, type: Type, options?: ControlOptions) {
+  const sep = options?.sep ?? SEP;
+
+  let value;
+  if (type === 'subject') (value = parse(str, sep)) && (value.scope = value.scope ?? NULL);
+  else if (type === 'action') (value = parse(str, sep)) && (value.scope = value.scope ?? ANY);
+  else if (type === 'object') (value = parse(str, sep)) && (value.scope = value.scope ?? ALL);
+  else throw new Error('Pattern type is not valid');
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return `${value.main}${sep}${scope(value.scope!, options)}`;
 }
 
 export function key<Sub = string, Act = string, Obj = string>(polity: Policy<Sub, Act, Obj>, sep = SEP) {
@@ -38,8 +53,8 @@ export function key<Sub = string, Act = string, Obj = string>(polity: Policy<Sub
   return [subject_key, action_key, object_key].join(sep);
 }
 
-export function regex<Sub = string, Act = string, Obj = string>(polity: Policy<Sub, Act, Obj>, options: ControlOptions) {
-  const sep = options.sep ?? SEP;
+export function regex<Sub = string, Act = string, Obj = string>(polity: Policy<Sub, Act, Obj>, options?: ControlOptions) {
+  const sep = options?.sep ?? SEP;
 
   const subject = parse(polity.subject, sep);
   const action = parse(polity.action, sep);

@@ -2,7 +2,7 @@
 import { isInSubnet } from 'is-in-subnet';
 
 import { ControlOptions, GrantInterface, Policy, PolicyPattern, Time, TimeOptions } from '../interfaces';
-import { accessibility, accumulate, filterByNotation, isCIDR, key, log, validate } from '../utils';
+import { accessibility, accumulate, filterByNotation, isCIDR, key, normalize, validate } from '../utils';
 import { POLICY_NOTATION, SEP, STRICT } from '../consts';
 
 export class Grant<Sub = string, Act = string, Obj = string> implements GrantInterface<Sub, Act, Obj> {
@@ -33,9 +33,9 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
 
     const { subject, action, object } = pattern;
     const policies = Object.values(this.present);
-    if (subject) return policies.some((p) => RegExp(subject).test(p.subject as string));
-    if (action) return policies.some((p) => RegExp(action).test(p.action as string));
-    if (object) return policies.some((p) => RegExp(object).test(p.object as string));
+    if (subject) return policies.some((p) => RegExp(subject).test(normalize(p.subject, 'subject', this.options)));
+    if (action) return policies.some((p) => RegExp(action).test(normalize(p.action, 'action', this.options)));
+    if (object) return policies.some((p) => RegExp(object).test(normalize(p.object, 'object', this.options)));
 
     return false;
   }
@@ -171,13 +171,10 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
     const add = (key: string) => {
       if (key in this.present) {
         const { subject, action, object } = policy;
-        log('update-policies').warn(`policy with subject ${subject}, action ${action} and object ${object} already exists`);
-
-        this.present[key] = policy;
+        throw new Error(`policy with subject "${subject}", action "${action}" and object "${object}" already exists`);
       } else this.present[key] = policy;
     };
 
-    add(key(policy, this.options.sep));
     add(key(policy, this.options.sep));
   }
 }

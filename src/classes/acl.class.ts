@@ -51,6 +51,8 @@ export class AccessControl<Sub = string, Act = string, Obj = string> implements 
 
     if (!subjects?.length) throw new Error('No subjects given');
 
+    const start = Date.now();
+
     let granted = false;
     const grant = new Grant<Sub, Act, Obj>([], { sep, strict });
     for (const idx in this.policies)
@@ -60,6 +62,8 @@ export class AccessControl<Sub = string, Act = string, Obj = string> implements 
       );
 
     if (granted && options?.callable) granted &&= !!options.callable(new Permission<Sub, Act, Obj>(granted, grant));
+
+    log('can-method').info(`can method execution time is ${Date.now() - start}ms`);
 
     return new Permission<Sub, Act, Obj>(granted, grant);
   }

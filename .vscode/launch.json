@@ -10,9 +10,7 @@
       "name": "Attach",
       "restart": true,
       "port": 9229,
-      "skipFiles": [
-        "<node_internals>/**"
-      ]
+      "skipFiles": ["<node_internals>/**"]
     },
     {
       "type": "node",
@@ -20,21 +18,14 @@
       "name": "Launch Program",
       "program": "${workspaceFolder}/src/index.ts",
       "preLaunchTask": "tsc: build - tsconfig.json",
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
-      ]
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Jest Tests",
-      "runtimeArgs": [
-        "--inspect-brk",
-        "${workspaceRoot}/node_modules/.bin/jest",
-        "--runInBand",
-        "--coverage",
-        "false"
-      ],
+      "name": "Jest watch current file",
+      "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+      "args": ["${fileBasename}", "--verbose", "-i", "--no-cache", "--watchAll"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     }
