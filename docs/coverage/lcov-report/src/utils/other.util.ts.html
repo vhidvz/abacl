@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">38.09% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>42/42</span>
+                <span class='fraction'>16/42</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">89.47% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>17/19</span>
+                <span class='fraction'>1/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">33.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>1/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">38.09% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>42/42</span>
+                <span class='fraction'>16/42</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -113,80 +113,80 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/* eslint-disable @typescript-eslint/no-explicit-any */
 import parser from 'cron-parser';
 &nbsp;
-import { Time } from '../interfaces';
+import { Time } from '../types';
 &nbsp;
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Notation } = require('notation');
 &nbsp;
-export function accumulate(...notations: string[][]): string[] {
-  notations = notations.filter((f) =&gt; f.length &gt; 0);
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >export function accumulate(...notations: string[][]): string[] {</span></span>
+<span class="cstat-no" title="statement not covered" >  notations = notations.filter((f) =&gt; f.length &gt; 0);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  const first = notations.shift();</span>
+<span class="cstat-no" title="statement not covered" >  if (!first) return [];</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  let neg = first.filter((f) =&gt; f.startsWith('!'));</span>
+<span class="cstat-no" title="statement not covered" >  let pos = first.filter((f) =&gt; !f.startsWith('!'));</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  for (const notation of notations) {</span>
+<span class="cstat-no" title="statement not covered" >    pos = [...new Set([...pos, ...notation.filter((f) =&gt; !f.startsWith('!'))])];</span>
+<span class="cstat-no" title="statement not covered" >    neg = neg.filter((n) =&gt; notation.filter((f) =&gt; f.startsWith('!')).includes(n));</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  return [...pos, ...neg];</span>
+<span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
-  const first = notations.shift();
-  if (!first) return [];
-&nbsp;
-  let neg = first.filter((f) =&gt; f.startsWith('!'));
-  let pos = first.filter((f) =&gt; !f.startsWith('!'));
-&nbsp;
-  for (const notation of notations) {
-    pos = [...new Set([...pos, ...notation.filter((f) =&gt; !f.startsWith('!'))])];
-    neg = neg.filter((n) =&gt; notation.filter((f) =&gt; f.startsWith('!')).includes(n));
-  }
-&nbsp;
-  return [...pos, ...neg];
-}
-&nbsp;
-export function accessibility(time: Time, options?: { currentDate?: Date; tz?: string }): boolean {
-  const { cron_exp, duration } = time;
-&nbsp;
-  const currentDate = options<span class="branch-0 cbranch-no" title="branch not covered" >?.c</span>urrentDate<span class="branch-0 cbranch-no" title="branch not covered" > ?? new Date();</span>
-&nbsp;
-  const prevDate = parser.parseExpression(cron_exp, options).prev();
-  const nextDate = new Date(prevDate.getTime() + duration * 1000);
-&nbsp;
-  return currentDate &gt;= prevDate.toDate() &amp;&amp; currentDate &lt; nextDate;
-}
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >export function accessibility(time: Time, options?: { currentDate?: Date; tz?: string }): boolean {</span></span>
+<span class="cstat-no" title="statement not covered" >  const { cron_exp, duration } = time;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  const currentDate = options?.currentDate ?? new Date();</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  const prevDate = parser.parseExpression(cron_exp, options).prev();</span>
+<span class="cstat-no" title="statement not covered" >  const nextDate = new Date(prevDate.getTime() + duration * 1000);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  return currentDate &gt;= prevDate.toDate() &amp;&amp; currentDate &lt; nextDate;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 export function filterByNotation(data: any, notation: string[], deep_copy = true) {
   if (deep_copy) data = JSON.parse(JSON.stringify(data));
 &nbsp;
-  if (Array.isArray(data)) return data.map((datum) =&gt; new Notation(datum).filter(notation).value);
+  if (Array.isArray(data)) <span class="branch-0 cbranch-no" title="branch not covered" >return data.map((datum) =&gt; new Notation(datum).filter(notation).value);</span>
   else return new Notation(data).filter(notation).value;
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -196,7 +196,7 @@ export function filterByNotation(data: any, notation: string[], deep_copy = true
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2023-06-24T05:45:31.078Z
+                at 2023-06-24T07:48:20.779Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

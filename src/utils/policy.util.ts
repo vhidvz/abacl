@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ALL, ANY, NULL, SEP, STRICT } from '../consts';
-import { ControlOptions, Policy } from '../interfaces';
+import { ControlOptions, Policy } from '../types';
 
 export type PropType = 'subject' | 'action' | 'object';
 export type ScopeValue = { main: string; scope?: string };

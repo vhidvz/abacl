@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isInSubnet } from 'is-in-subnet';
 
-import { ControlOptions, GrantInterface, Policy, PolicyPattern, Time, TimeOptions } from '../interfaces';
-import { PropType, accessibility, accumulate, filterByNotation, isCIDR, key, normalize, validate } from '../utils';
+import { PropType, accessibility, accumulate, filterByNotation, isCIDR, key, normalize, parse, validate } from '../utils';
+import { ControlOptions, GrantInterface, Policy, PolicyPattern, Time, TimeOptions } from '../types';
 import { POLICY_NOTATION, SEP, STRICT } from '../consts';
 
 export class Grant<Sub = string, Act = string, Obj = string> implements GrantInterface<Sub, Act, Obj> {
@@ -41,22 +41,54 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
     return flag && (!!subject || !!action || !!object);
   }
 
+  scopes<T = string>(type: PropType, pattern?: PolicyPattern): T[] {
+    const policies = Object.values(this.present);
+
+    if (!pattern || !Object.keys(pattern).length)
+      return [...new Set<T>(policies.map((p) => parse(p[type]).scope as T).filter((s) => !!s))];
+    else {
+      type Option = { regex: RegExp; type: PropType };
+      const add = (set: Set<T>, options: Option[]) => {
+        policies
+          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
+          .map((p) => parse(p[type]).scope as T)
+          .forEach((s) => s && set.add(s));
+      };
+
+      const options: Option[] = [];
+      const scopes = new Set<T>([]);
+      const { subject, action, object } = pattern;
+      if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
+      if (action) options.push({ regex: RegExp(action), type: 'action' });
+      if (object) options.push({ regex: RegExp(object), type: 'object' });
+      add(scopes, options);
+
+      return [...scopes];
+    }
+  }
+
   subjects(pattern?: PolicyPattern): Sub[] {
     const policies = Object.values(this.present);
 
     if (!pattern || !Object.keys(pattern).length) return [...new Set<Sub>(policies.map((p) => p.subject))];
+    else {
+      type Option = { regex: RegExp; type: PropType };
+      const add = (set: Set<Sub>, options: Option[]) => {
+        policies
+          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
+          .map((p) => set.add(p.subject));
+      };
 
-    const add = (pattern: string, type: PropType, set: Set<Sub>) => {
-      policies.filter((p) => RegExp(pattern).test(normalize(p[type], type))).map((p) => set.add(p.subject));
-    };
+      const options: Option[] = [];
+      const subjects = new Set<Sub>([]);
+      const { subject, action, object } = pattern;
+      if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
+      if (action) options.push({ regex: RegExp(action), type: 'action' });
+      if (object) options.push({ regex: RegExp(object), type: 'object' });
+      add(subjects, options);
 
-    const subjects = new Set<Sub>([]);
-    const { subject, action, object } = pattern;
-    if (subject) add(subject, 'subject', subjects);
-    if (action) add(action, 'action', subjects);
-    if (object) add(object, 'object', subjects);
-
-    return [...subjects];
+      return [...subjects];
+    }
   }
 
   time(pattern?: PolicyPattern, options?: TimeOptions): boolean {

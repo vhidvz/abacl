@@ -1,5 +1,6 @@
 import { IPermission } from './permission.interface';
 import { ANY, ALL } from '../consts';
+import { Grant } from '../classes';
 
 export interface Time {
   cron_exp: string;
@@ -32,7 +33,7 @@ export type AccessControlOptions = ControlOptions;
 export interface AccessControlCanOptions<Sub = string, Act = string, Obj = string> {
   strict?: boolean;
   deep_copy?: boolean;
-  callable?: (perm: IPermission<Sub, Act, Obj>) => boolean;
+  callable?: (grant: Grant<Sub, Act, Obj>) => boolean;
 }
 
 export interface IAccessControl<Sub = string, Act = string, Obj = string> {

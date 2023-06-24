@@ -2,7 +2,7 @@
 import { isValidCron } from 'cron-validator';
 
 import { cidrRegex, ipRegex } from './regex.util';
-import { Policy } from '../interfaces';
+import { Policy } from '../types';
 
 export function isIP(str: string): boolean {
   return ipRegex.test(str);

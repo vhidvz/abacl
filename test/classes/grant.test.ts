@@ -13,13 +13,27 @@ describe('test grant class', () => {
 
   it('should throw exception on duplication', () => {
     const arrowFn = () => grant.update({ subject: Role.Admin, action: 'any', object: 'all' });
-    expect(() => arrowFn()).toThrowError('policy with subject "admin", action "any" and object "all" already exists');
+    expect(arrowFn).toThrowError(Error('policy with subject "admin", action "any" and object "all" already exists'));
   });
 
   it('should verify has pattern exists', () => {
     expect(grant.has({ subject: pattern({ main: Role.Admin }, 'subject') })).toBeTruthy();
 
     expect(grant.has({ action: normalize(ANY, 'action'), object: normalize(ALL, 'object') })).toBeTruthy();
+  });
+
+  it('should return grant scopes', () => {
+    expect(grant.scopes('subject')).toEqual([]);
+
+    expect(grant.scopes('action')).toEqual(['own', 'shared']);
+    expect(grant.scopes('object')).toEqual(['published']);
+
+    expect(
+      grant.scopes('action', { subject: normalize('user', 'subject'), action: normalize('read', 'action', { strict: true }) }),
+    ).toEqual([]);
+    expect(
+      grant.scopes('action', { subject: normalize('user', 'subject'), action: normalize('read', 'action', { strict: false }) }),
+    ).toEqual(['own', 'shared']);
   });
 
   it('should return grant subjects', () => {

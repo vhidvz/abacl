@@ -1,4 +1,4 @@
-import { AccessControlCanOptions, AccessControlInterface, ControlOptions, Policy } from '../interfaces';
+import { AccessControlCanOptions, AccessControlInterface, ControlOptions, Policy } from '../types';
 import { filterByNotation, key, log, regex, validate } from '../utils';
 import { POLICY_NOTATION, SEP, STRICT } from '../consts';
 import { Permission } from './permission.class';
@@ -27,6 +27,10 @@ export class AccessControl<Sub = string, Act = string, Obj = string> implements 
     return Object.values(this.present);
   }
 
+  exists(policy: Policy<Sub, Act, Obj>): boolean {
+    return key(policy, this.options.sep) in this.present;
+  }
+
   update(policy: Policy<Sub, Act, Obj>, deep_copy = true) {
     validate(policy);
 
@@ -35,13 +39,10 @@ export class AccessControl<Sub = string, Act = string, Obj = string> implements 
     const add = (key: string) => {
       if (key in this.present) {
         const { subject, action, object } = policy;
-        log('update-policies').warn(`policy with subject ${subject}, action ${action} and object ${object} already exists`);
-
-        this.present[key] = policy;
+        throw new Error(`policy with subject "${subject}", action "${action}" and object "${object}" already exists`);
       } else this.present[key] = policy;
     };
 
-    add(key(policy, this.options.sep));
     add(key(policy, this.options.sep));
   }
 
@@ -55,13 +56,13 @@ export class AccessControl<Sub = string, Act = string, Obj = string> implements 
 
     let granted = false;
     const grant = new Grant<Sub, Act, Obj>([], { sep, strict });
-    for (const idx in this.policies)
+    for (const key in this.present)
       subjects.forEach(
         (subject) =>
-          regex({ subject, action, object }, { sep, strict }).test(idx) && (granted = true) && grant.update(this.policies[idx]),
+          regex({ subject, action, object }, { sep, strict }).test(key) && (granted = true) && grant.update(this.present[key]),
       );
 
-    if (granted && options?.callable) granted &&= !!options.callable(new Permission<Sub, Act, Obj>(granted, grant));
+    if (granted && options?.callable) granted &&= !!options.callable(grant);
 
     log('can-method').info(`can method execution time is ${Date.now() - start}ms`);
 

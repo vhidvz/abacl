@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PermissionInterface, PolicyPattern, TimeOptions } from '../interfaces';
+import { PermissionInterface, PolicyPattern, TimeOptions } from '../types';
 import { Grant } from './grant.class';
 
 export class Permission<Sub = string, Act = string, Obj = string> implements PermissionInterface<Sub, Act, Obj> {
