@@ -13,7 +13,7 @@
     "lint": "eslint . '*/**/*.{js,ts}' --quiet --fix",
     "format": "prettier --write \"(src|test)/**/*.(ts|js)\"",
     "debug": "node -r ts-node/register --inspect src/index.ts",
-    "clean": "rm -rf ./lib && rm -rf ./docs && npm run doc && npm run test",
+    "clean": "rm -rf ./dist && rm -rf ./docs && npm run doc && npm run test",
     "test": "jest && make-coverage-badge --report-path docs/coverage/coverage-summary.json --output-path coverage-badge.svg"
   },
   "repository": {

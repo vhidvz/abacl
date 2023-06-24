@@ -159,57 +159,79 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
   field<T>(data: any, pattern?: PolicyPattern | (<T>(data: T) => PolicyPattern), deep_copy = false): T {
     const policies = Object.values(this.present);
 
-    const fields: string[][] = [];
-    if (!pattern || !Object.keys(pattern).length) {
-      for (const field of policies.filter((p) => p.field?.length).map((p) => p.field)) field && fields.push(field);
-    } else {
-      type Option = { regex: RegExp; type: PropType };
-      const add = (options: Option[]) => {
-        policies
-          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
-          .map((p) => p.field)
-          .forEach((f) => f && fields.push(f));
-      };
+    const get = (data: any) => {
+      const fields: string[][] = [];
+      if (!pattern || !Object.keys(pattern).length) {
+        for (const field of policies.filter((p) => p.field?.length).map((p) => p.field)) field && fields.push(field);
+      } else {
+        type Option = { regex: RegExp; type: PropType };
+        const add = (options: Option[]) => {
+          policies
+            .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
+            .map((p) => p.field)
+            .forEach((f) => f && fields.push(f));
+        };
 
-      const options: Option[] = [];
-      const { subject, action, object } = typeof pattern === 'function' ? pattern(data) : pattern;
-      if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
-      if (action) options.push({ regex: RegExp(action), type: 'action' });
-      if (object) options.push({ regex: RegExp(object), type: 'object' });
-      add(options);
+        const options: Option[] = [];
+        const { subject, action, object } = typeof pattern === 'function' ? pattern(data) : pattern;
+        if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
+        if (action) options.push({ regex: RegExp(action), type: 'action' });
+        if (object) options.push({ regex: RegExp(object), type: 'object' });
+        add(options);
+      }
+
+      return fields;
+    };
+
+    const notation = accumulate(...get(data));
+    if (!notation.length) return (deep_copy ? JSON.parse(JSON.stringify(data)) : data) as T;
+    else {
+      if (typeof data === 'object' && Array.isArray(data)) {
+        return data.map((item) => {
+          const notation = accumulate(...get(item));
+          return filterByNotation(item, notation, deep_copy) as T;
+        }) as T;
+      } else return filterByNotation(data, notation, deep_copy) as T;
     }
-
-    const notations = accumulate(...fields);
-    if (!notations.length) return (deep_copy ? JSON.parse(JSON.stringify(data)) : data) as T;
-    else return filterByNotation(data, notations, deep_copy) as T;
   }
 
   filter<T>(data: any, pattern?: PolicyPattern | (<T>(data: T) => PolicyPattern), deep_copy = false): T {
     const policies = Object.values(this.present);
 
-    const filters: string[][] = [];
-    if (!pattern || !Object.keys(pattern).length) {
-      for (const filter of policies.filter((p) => p.filter?.length).map((p) => p.filter)) filter && filters.push(filter);
-    } else {
-      type Option = { regex: RegExp; type: PropType };
-      const add = (options: Option[]) => {
-        policies
-          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
-          .map((p) => p.filter)
-          .forEach((f) => f && filters.push(f));
-      };
+    const get = (data: any) => {
+      const filters: string[][] = [];
+      if (!pattern || !Object.keys(pattern).length) {
+        for (const filter of policies.filter((p) => p.filter?.length).map((p) => p.filter)) filter && filters.push(filter);
+      } else {
+        type Option = { regex: RegExp; type: PropType };
+        const add = (options: Option[]) => {
+          policies
+            .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
+            .map((p) => p.filter)
+            .forEach((f) => f && filters.push(f));
+        };
 
-      const options: Option[] = [];
-      const { subject, action, object } = typeof pattern === 'function' ? pattern(data) : pattern;
-      if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
-      if (action) options.push({ regex: RegExp(action), type: 'action' });
-      if (object) options.push({ regex: RegExp(object), type: 'object' });
-      add(options);
+        const options: Option[] = [];
+        const { subject, action, object } = typeof pattern === 'function' ? pattern(data) : pattern;
+        if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
+        if (action) options.push({ regex: RegExp(action), type: 'action' });
+        if (object) options.push({ regex: RegExp(object), type: 'object' });
+        add(options);
+      }
+
+      return filters;
+    };
+
+    const notation = accumulate(...get(data));
+    if (!notation.length) return (deep_copy ? JSON.parse(JSON.stringify(data)) : data) as T;
+    else {
+      if (typeof data === 'object' && Array.isArray(data)) {
+        return data.map((item) => {
+          const notation = accumulate(...get(item));
+          return filterByNotation(item, notation, deep_copy) as T;
+        }) as T;
+      } else return filterByNotation(data, notation, deep_copy) as T;
     }
-
-    const notations = accumulate(...filters);
-    if (!notations.length) return (deep_copy ? JSON.parse(JSON.stringify(data)) : data) as T;
-    else return filterByNotation(data, notations, deep_copy) as T;
   }
 
   update(policy: Policy<Sub, Act, Obj>, deep_copy = true) {
