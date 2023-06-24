@@ -156,7 +156,7 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
       );
   }
 
-  field<T>(data: any, pattern?: PolicyPattern, deep_copy = false): T {
+  field<T>(data: any, pattern?: PolicyPattern | (<T>(data: T) => PolicyPattern), deep_copy = false): T {
     const policies = Object.values(this.present);
 
     const fields: string[][] = [];
@@ -172,7 +172,7 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
       };
 
       const options: Option[] = [];
-      const { subject, action, object } = pattern;
+      const { subject, action, object } = typeof pattern === 'function' ? pattern(data) : pattern;
       if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
       if (action) options.push({ regex: RegExp(action), type: 'action' });
       if (object) options.push({ regex: RegExp(object), type: 'object' });
@@ -184,7 +184,7 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
     else return filterByNotation(data, notations, deep_copy) as T;
   }
 
-  filter<T>(data: any, pattern?: PolicyPattern, deep_copy = false): T {
+  filter<T>(data: any, pattern?: PolicyPattern | (<T>(data: T) => PolicyPattern), deep_copy = false): T {
     const policies = Object.values(this.present);
 
     const filters: string[][] = [];
@@ -200,7 +200,7 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
       };
 
       const options: Option[] = [];
-      const { subject, action, object } = pattern;
+      const { subject, action, object } = typeof pattern === 'function' ? pattern(data) : pattern;
       if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
       if (action) options.push({ regex: RegExp(action), type: 'action' });
       if (object) options.push({ regex: RegExp(object), type: 'object' });
