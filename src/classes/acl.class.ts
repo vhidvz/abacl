@@ -31,6 +31,11 @@ export class AccessControl<Sub = string, Act = string, Obj = string> implements 
     return key(policy, this.options.sep) in this.present;
   }
 
+  delete(policy: Policy<Sub, Act, Obj>): 'OK' {
+    delete this.present[key(policy, this.options.sep)];
+    return 'OK';
+  }
+
   update(policy: Policy<Sub, Act, Obj>, deep_copy = true) {
     validate(policy);
 
