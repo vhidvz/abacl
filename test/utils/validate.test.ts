@@ -33,10 +33,10 @@ describe('test validate utils', () => {
       time: [
         {
           cron_exp: '* * 7 * * *', // from 7 AM
-          duration: 8 * 60 * 60, // for 8 hours
+          duration: 9 * 60 * 60, // for 9 hours
         },
       ],
-      location: ['192.168.1.10', '192.168.1.0/24'],
+      location: ['192.168.2.10', '192.168.1.0/24'],
     };
 
     expect(() => validate(policy)).not.toThrow();

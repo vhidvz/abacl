@@ -2,9 +2,10 @@
 import { ALL, ANY, NULL, SEP, STRICT } from '../consts';
 import { ControlOptions, Policy } from '../interfaces';
 
-type Type = 'subject' | 'action' | 'object';
+export type PropType = 'subject' | 'action' | 'object';
+export type ScopeValue = { main: string; scope?: string };
 
-export function parse(str: any, sep: string = SEP): { main: string; scope?: string } {
+export function parse(str: any, sep: string = SEP): ScopeValue {
   if (typeof str !== 'string') throw new Error('Value is not parsable');
 
   const [main, scope] = str.split(sep);
@@ -19,7 +20,7 @@ export function scope(str: string, options?: ControlOptions) {
   return options.strict ? str : `.+[^${options.sep}]`;
 }
 
-export function pattern(val: { main: string; scope?: string }, type: Type, options?: ControlOptions) {
+export function pattern(val: ScopeValue, type: PropType, options?: ControlOptions) {
   if (type === 'subject') val.scope = val.scope ?? NULL;
   else if (type === 'action') val.scope = val.scope ?? ANY;
   else if (type === 'object') val.scope = val.scope ?? ALL;
@@ -28,13 +29,15 @@ export function pattern(val: { main: string; scope?: string }, type: Type, optio
   return `${val.main}${options?.sep ?? SEP}${scope(val.scope, options)}`;
 }
 
-export function normalize(str: any, type: Type, options?: ControlOptions) {
+export function normalize<T = string>(val: T | ScopeValue, type: PropType, options?: ControlOptions) {
   const sep = options?.sep ?? SEP;
 
-  let value;
-  if (type === 'subject') (value = parse(str, sep)) && (value.scope = value.scope ?? NULL);
-  else if (type === 'action') (value = parse(str, sep)) && (value.scope = value.scope ?? ANY);
-  else if (type === 'object') (value = parse(str, sep)) && (value.scope = value.scope ?? ALL);
+  const get = () => (typeof val === 'string' ? parse(val, sep) : val);
+
+  const value = get() as ScopeValue;
+  if (type === 'subject') value.scope = value.scope ?? NULL;
+  else if (type === 'action') value.scope = value.scope ?? ANY;
+  else if (type === 'object') value.scope = value.scope ?? ALL;
   else throw new Error('Pattern type is not valid');
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

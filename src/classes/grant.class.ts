@@ -2,7 +2,7 @@
 import { isInSubnet } from 'is-in-subnet';
 
 import { ControlOptions, GrantInterface, Policy, PolicyPattern, Time, TimeOptions } from '../interfaces';
-import { accessibility, accumulate, filterByNotation, isCIDR, key, normalize, validate } from '../utils';
+import { PropType, accessibility, accumulate, filterByNotation, isCIDR, key, normalize, validate } from '../utils';
 import { POLICY_NOTATION, SEP, STRICT } from '../consts';
 
 export class Grant<Sub = string, Act = string, Obj = string> implements GrantInterface<Sub, Act, Obj> {
@@ -31,27 +31,32 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
   has(pattern: PolicyPattern): boolean {
     if (!Object.keys(pattern).length) throw new Error('Pattern is required');
 
+    let flag = true;
     const { subject, action, object } = pattern;
     const policies = Object.values(this.present);
-    if (subject) return policies.some((p) => RegExp(subject).test(normalize(p.subject, 'subject', this.options)));
-    if (action) return policies.some((p) => RegExp(action).test(normalize(p.action, 'action', this.options)));
-    if (object) return policies.some((p) => RegExp(object).test(normalize(p.object, 'object', this.options)));
+    if (subject) flag &&= policies.some((p) => RegExp(subject).test(normalize(p.subject, 'subject', this.options)));
+    if (action) flag &&= policies.some((p) => RegExp(action).test(normalize(p.action, 'action', this.options)));
+    if (object) flag &&= policies.some((p) => RegExp(object).test(normalize(p.object, 'object', this.options)));
 
-    return false;
+    return flag && (!!subject || !!action || !!object);
   }
 
   subjects(pattern?: PolicyPattern): Sub[] {
     const policies = Object.values(this.present);
 
-    if (!pattern || !Object.keys(pattern).length) return policies.map((p) => p.subject);
+    if (!pattern || !Object.keys(pattern).length) return [...new Set<Sub>(policies.map((p) => p.subject))];
 
-    const subjects: Sub[] = [];
+    const add = (pattern: string, type: PropType, set: Set<Sub>) => {
+      policies.filter((p) => RegExp(pattern).test(normalize(p[type], type))).map((p) => set.add(p.subject));
+    };
+
+    const subjects = new Set<Sub>([]);
     const { subject, action, object } = pattern;
-    if (subject) subjects.push(...policies.filter((p) => RegExp(subject).test(p.subject as string)).map((p) => p.subject));
-    if (action) subjects.push(...policies.filter((p) => RegExp(action).test(p.action as string)).map((p) => p.subject));
-    if (object) subjects.push(...policies.filter((p) => RegExp(object).test(p.object as string)).map((p) => p.subject));
+    if (subject) add(subject, 'subject', subjects);
+    if (action) add(action, 'action', subjects);
+    if (object) add(object, 'object', subjects);
 
-    return subjects;
+    return [...subjects];
   }
 
   time(pattern?: PolicyPattern, options?: TimeOptions): boolean {
@@ -63,18 +68,21 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
       for (const time of policies.filter((p) => p.time?.length).map((p) => p.time))
         time?.forEach((t) => t && (times[`${t.cron_exp}${sep}${t.duration}`] = t));
     } else {
-      const add = (regex: RegExp, prop: 'subject' | 'action' | 'object') => {
+      type Option = { regex: RegExp; type: PropType };
+      const add = (options: Option[]) => {
         policies
-          .filter((p) => regex.test(p[prop] as string))
+          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
           .map((p) => p.time)
           .flat()
           .forEach((t) => t && (times[`${t.cron_exp}${sep}${t.duration}`] = t));
       };
 
+      const options: Option[] = [];
       const { subject, action, object } = pattern;
-      if (subject) add(RegExp(subject), 'subject');
-      if (action) add(RegExp(action), 'action');
-      if (object) add(RegExp(object), 'object');
+      if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
+      if (action) options.push({ regex: RegExp(action), type: 'action' });
+      if (object) options.push({ regex: RegExp(object), type: 'object' });
+      add(options);
     }
 
     if (!Object.keys(times).length) return true;
@@ -89,18 +97,21 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
       for (const location of policies.filter((p) => p.location?.length).map((p) => p.location))
         location?.forEach((l) => l && locations.add(l));
     } else {
-      const add = (regex: RegExp, prop: 'subject' | 'action' | 'object') => {
+      type Option = { regex: RegExp; type: PropType };
+      const add = (options: Option[]) => {
         policies
-          .filter((p) => regex.test(p[prop] as string))
+          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
           .map((p) => p.location)
           .flat()
           .forEach((l) => l && locations.add(l));
       };
 
+      const options: Option[] = [];
       const { subject, action, object } = pattern;
-      if (subject) add(RegExp(subject), 'subject');
-      if (action) add(RegExp(action), 'action');
-      if (object) add(RegExp(object), 'object');
+      if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
+      if (action) options.push({ regex: RegExp(action), type: 'action' });
+      if (object) options.push({ regex: RegExp(object), type: 'object' });
+      add(options);
     }
 
     if (!locations.size) return true;
@@ -120,21 +131,24 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
     if (!pattern || !Object.keys(pattern).length) {
       for (const field of policies.filter((p) => p.field?.length).map((p) => p.field)) field && fields.push(field);
     } else {
-      const add = (regex: RegExp, prop: 'subject' | 'action' | 'object') => {
+      type Option = { regex: RegExp; type: PropType };
+      const add = (options: Option[]) => {
         policies
-          .filter((p) => regex.test(p[prop] as string))
+          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
           .map((p) => p.field)
           .forEach((f) => f && fields.push(f));
       };
 
+      const options: Option[] = [];
       const { subject, action, object } = pattern;
-      if (subject) add(RegExp(subject), 'subject');
-      if (action) add(RegExp(action), 'action');
-      if (object) add(RegExp(object), 'object');
+      if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
+      if (action) options.push({ regex: RegExp(action), type: 'action' });
+      if (object) options.push({ regex: RegExp(object), type: 'object' });
+      add(options);
     }
 
     const notations = accumulate(...fields);
-    if (!notations.length) return filterByNotation(data, ['*'], deep_copy) as T;
+    if (!notations.length) return (deep_copy ? JSON.parse(JSON.stringify(data)) : data) as T;
     else return filterByNotation(data, notations, deep_copy) as T;
   }
 
@@ -145,21 +159,24 @@ export class Grant<Sub = string, Act = string, Obj = string> implements GrantInt
     if (!pattern || !Object.keys(pattern).length) {
       for (const filter of policies.filter((p) => p.filter?.length).map((p) => p.filter)) filter && filters.push(filter);
     } else {
-      const add = (regex: RegExp, prop: 'subject' | 'action' | 'object') => {
+      type Option = { regex: RegExp; type: PropType };
+      const add = (options: Option[]) => {
         policies
-          .filter((p) => regex.test(p[prop] as string))
+          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
           .map((p) => p.filter)
           .forEach((f) => f && filters.push(f));
       };
 
+      const options: Option[] = [];
       const { subject, action, object } = pattern;
-      if (subject) add(RegExp(subject), 'subject');
-      if (action) add(RegExp(action), 'action');
-      if (object) add(RegExp(object), 'object');
+      if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
+      if (action) options.push({ regex: RegExp(action), type: 'action' });
+      if (object) options.push({ regex: RegExp(object), type: 'object' });
+      add(options);
     }
 
     const notations = accumulate(...filters);
-    if (!notations.length) return filterByNotation(data, ['*'], deep_copy) as T;
+    if (!notations.length) return (deep_copy ? JSON.parse(JSON.stringify(data)) : data) as T;
     else return filterByNotation(data, notations, deep_copy) as T;
   }
 

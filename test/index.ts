@@ -336,11 +336,11 @@ describe('test access control', () => {
 
     expect(permission.granted).toBeTruthy();
 
-    expect(permission.location('192.168.2.1')).toBeFalsy();
+    expect(permission.location('192.168.2.10')).toBeFalsy();
     expect(permission.location('192.168.1.100')).toBeTruthy();
     expect(permission.location('192.168.1.200')).toBeTruthy();
 
-    expect(permission.grant('.*').location('192.168.2.1')).toBeFalsy();
+    expect(permission.grant('.*').location('192.168.2.10')).toBeFalsy();
     expect(permission.grant('.*').location('192.168.1.100')).toBeTruthy();
     expect(permission.grant('.*').location('192.168.1.200')).toBeTruthy();
 

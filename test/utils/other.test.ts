@@ -14,8 +14,8 @@ describe('test other utils', () => {
 
   it('should check time for accessibility', () => {
     const time: Time = {
-      cron_exp: '* * 6 * * *',
-      duration: 28800,
+      cron_exp: '* * 7 * * *', // from 7 AM
+      duration: 9 * 60 * 60, // for 9 hours
     };
 
     const positiveDate = new Date('Fri Jun 23 2023 10:07:34 GMT+0330 (Iran Standard Time)');

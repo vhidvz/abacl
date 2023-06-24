@@ -33,11 +33,11 @@ export const policies: Policy<Role>[] = [
     action: 'create:own',
     object: 'article',
     field: ['*', '!owner'],
-    location: ['192.168.1.10', '192.168.1.0/24'],
+    location: ['192.168.2.10', '192.168.1.0/24'],
     time: [
       {
         cron_exp: '* * 7 * * *', // from 7 AM
-        duration: 8 * 60 * 60, // for 8 hours
+        duration: 9 * 60 * 60, // for 9 hours
       },
     ],
   },
@@ -50,7 +50,7 @@ export const policies: Policy<Role>[] = [
     subject: Role.User,
     action: 'read:shared',
     object: 'article',
-    filter: ['*', '!id'],
+    filter: ['*', '!owner'],
   },
   {
     subject: Role.User,
@@ -61,6 +61,6 @@ export const policies: Policy<Role>[] = [
     subject: Role.User,
     action: 'update:own',
     object: 'article',
-    field: ['*', '!owner'],
+    field: ['*', '!id', '!owner'],
   },
 ];
