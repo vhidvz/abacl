@@ -8,14 +8,14 @@ describe('test policy utils', () => {
 
   it('should return scope pattern', () => {
     expect(scope('own', { strict: true })).toEqual('own');
-    expect(scope('own', { strict: false })).toEqual('.+[^:]');
+    expect(scope('own', { strict: false })).toEqual('[^:][^:]*');
   });
 
   it('should return full pattern of policy', () => {
     expect(pattern({ main: 'root' }, 'subject')).toEqual('root:null');
 
     expect(pattern({ main: 'read', scope: 'own' }, 'action', { strict: true })).toEqual('read:own');
-    expect(pattern({ main: 'read', scope: 'own' }, 'action', { strict: false })).toEqual('read:.+[^:]');
+    expect(pattern({ main: 'read', scope: 'own' }, 'action', { strict: false })).toEqual('read:[^:][^:]*');
 
     expect(pattern({ main: 'article', scope: 'published' }, 'object', { sep: '#' })).toEqual('article#published');
   });
@@ -24,7 +24,7 @@ describe('test policy utils', () => {
     expect(normalize('root', 'subject')).toEqual('root:null');
 
     expect(normalize('read:own', 'action', { strict: true })).toEqual('read:own');
-    expect(normalize('read:own', 'action', { strict: false })).toEqual('read:.+[^:]');
+    expect(normalize('read:own', 'action', { strict: false })).toEqual('read:[^:][^:]*');
 
     expect(normalize('article#published', 'object', { sep: '#' })).toEqual('article#published');
   });
@@ -51,7 +51,7 @@ describe('test policy utils', () => {
       /^vhid.vz@gmail.com:author:any:any:all:all$/,
     );
     expect(regex({ subject: 'vhid.vz@gmail.com:author', action: 'any', object: 'all' }, { strict: false })).toEqual(
-      /^vhid.vz@gmail.com:.+[^:]:any:.+[^:]:all:.+[^:]$/,
+      /^vhid.vz@gmail.com:[^:][^:]*:any:[^:][^:]*:all:[^:][^:]*$/,
     );
   });
 });

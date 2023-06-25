@@ -1,10 +1,15 @@
-import { AccessControlCanOptions, AccessControlInterface, ControlOptions, Policy } from '../types';
 import { filterByNotation, key, log, regex, validate } from '../utils';
 import { POLICY_NOTATION, SEP, STRICT } from '../consts';
+import { ControlOptions, Policy } from '../types';
 import { Permission } from './permission.class';
 import { Grant } from './grant.class';
 
-export class AccessControl<Sub = string, Act = string, Obj = string> implements AccessControlInterface<Sub, Act, Obj> {
+export interface CanOptions<Sub = string, Act = string, Obj = string> {
+  strict?: boolean;
+  callable?: (perm: Permission<Sub, Act, Obj>) => boolean;
+}
+
+export class AccessControl<Sub = string, Act = string, Obj = string> {
   protected readonly options: ControlOptions = {};
   protected present: Record<string, Policy<Sub, Act, Obj>> = {};
 
@@ -31,9 +36,8 @@ export class AccessControl<Sub = string, Act = string, Obj = string> implements 
     return key(policy, this.options.sep) in this.present;
   }
 
-  delete(policy: Policy<Sub, Act, Obj>): 'OK' {
-    delete this.present[key(policy, this.options.sep)];
-    return 'OK';
+  delete(policy: Policy<Sub, Act, Obj>): boolean {
+    return delete this.present[key(policy, this.options.sep)];
   }
 
   update(policy: Policy<Sub, Act, Obj>, deep_copy = true) {
@@ -51,7 +55,7 @@ export class AccessControl<Sub = string, Act = string, Obj = string> implements 
     add(key(policy, this.options.sep));
   }
 
-  can(subjects: Sub[], action: Act, object: Obj, options?: AccessControlCanOptions<Sub, Act, Obj>): Permission<Sub, Act, Obj> {
+  can(subjects: Sub[], action: Act, object: Obj, options?: CanOptions<Sub, Act, Obj>): Permission<Sub, Act, Obj> {
     const sep = this.options.sep ?? SEP;
     const strict = options?.strict ?? this.options.strict ?? STRICT;
 
@@ -67,9 +71,9 @@ export class AccessControl<Sub = string, Act = string, Obj = string> implements 
           regex({ subject, action, object }, { sep, strict }).test(key) && (granted = true) && grant.update(this.present[key]),
       );
 
-    if (granted && options?.callable) granted &&= !!options.callable(grant);
+    if (granted && options?.callable) granted &&= !!options.callable(new Permission(granted, grant));
 
-    log('can-method').info(`can method execution time is ${Date.now() - start}ms`);
+    log('can').info(`can method execution time is ${Date.now() - start}ms`);
 
     return new Permission<Sub, Act, Obj>(granted, grant);
   }

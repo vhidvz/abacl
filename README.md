@@ -31,10 +31,10 @@ npm install --save abacl
 
 ### Usage
 
-Define your user abilities as a json array, so you can store it in your database:
+Define your user policies as a json array, so you can store it in your database:
 
 ```ts
-import { Ability } from 'abacl';
+import { Policy } from 'abacl';
 
 enum Role {
   Admin = 'admin',
@@ -43,7 +43,7 @@ enum Role {
   Manager = 'manager',
 }
 
-const abilities: Ability<Role>[] = [
+const policies: Policy<Role>[] = [
   {
     subject: Role.Admin,
     action: 'any',
@@ -52,6 +52,11 @@ const abilities: Ability<Role>[] = [
   {
     subject: Role.Guest,
     action: 'read',
+    object: 'article:published',
+  },
+  {
+    subject: Role.Guest,
+    action: 'create:own',
     object: 'article:published',
   },
   {
@@ -64,11 +69,11 @@ const abilities: Ability<Role>[] = [
     action: 'create:own',
     object: 'article',
     field: ['*', '!owner'],
-    location: ['127.0.0.1', '192.168.1.0/24'],
+    location: ['192.168.2.10', '192.168.1.0/24'],
     time: [
       {
-        cron_exp: '* * 8 * * *',
-        duration: 20 * 60 * 60,
+        cron_exp: '* * 7 * * *', // from 7 AM
+        duration: 9 * 60 * 60, // for 9 hours
       },
     ],
   },
@@ -81,7 +86,7 @@ const abilities: Ability<Role>[] = [
     subject: Role.User,
     action: 'read:shared',
     object: 'article',
-    filter: ['*', '!id'],
+    filter: ['*', '!owner'],
   },
   {
     subject: Role.User,
@@ -92,7 +97,7 @@ const abilities: Ability<Role>[] = [
     subject: Role.User,
     action: 'update:own',
     object: 'article',
-    field: ['*', '!owner'],
+    field: ['*', '!id', '!owner'],
   },
 ];
 ```
@@ -117,12 +122,12 @@ const article = {
 Create a new access control object, then get the permission grants:
 
 ```ts
-import AccessControl from 'abacl';
+import AccessControl, { normalize } from 'abacl';
 
 // The `strict` `AccessControlOption` control the scoped functionality
 // default strict value is true, you can change it on the `can` method
 
-const ac = new AccessControl(abilities, { strict: false });
+const ac = new AccessControl(policies, { strict: false });
 const permission = ac.can([user.subject], 'read', 'article');
 
 // change strict mode dynamically, Example:
@@ -130,7 +135,7 @@ const permission = ac.can([user.subject], 'read', 'article');
 
 /**
  *   it('should change strict mode dynamically', () => {
- *     const ac = new AccessControl(abilities, { strict: true });
+ *     const ac = new AccessControl(policies, { strict: true });
  *
  *     expect(ac.can([Role.User], 'read', 'article:published').granted).toBeFalsy();
  *
@@ -143,48 +148,40 @@ const permission = ac.can([user.subject], 'read', 'article');
 if (permission.granted) {
   // default scope for action and object is `any` and `all`
 
-  if (permission.has('own')) {
-    // Or pattern 'own:.*'
+  if (permission.has({ action: 'read:own' })) {
     // user has read owned article objects
   }
 
-  if (permission.has('shared')) {
-    // Or pattern 'shared:.*'
+  if (permission.has({ action: 'read:shared' })) {
     // user can access shared article objects
   }
 
-  if (permission.has('published')) {
-    // Or pattern '.*:published'
+  if (permission.has({ object: 'article:published' })) {
     // user can access shared article objects
   }
 
   // do something ...
 
-  // get grants by pattern 'shared' or 'shared:.*'
-  // pattern: [action_scoped_regex]:[object_scoped_regex]
-  const response = permission.filter(article); // OR
-  const response = permission.grant('shared').filter(article);
-
-  // Now response has no `id` property so sent it to user
+  const response = permission.filter(article);
 }
 ```
 
 Time and location access check example:
 
 ```ts
-import { Permission } from 'abacl';
+import { AccessControl, Permission } from 'abacl';
 
 // default `strict` value is true
-const ac = new AccessControl(abilities, { strict: true });
+const ac = new AccessControl(policies, { strict: true });
 
-const permission = ac.can([user.subject], 'create', 'article', (perm: Permission) => {
-  return perm.location(user.ip) && perm.time(); // OR Alternative Method
-  return perm.grant('own').location(user.ip) && perm.grant('own').time();
+const permission = ac.can([user.subject], 'create', 'article', {
+  callable: (perm: Permission) => {
+    return perm.location(user.ip) && perm.time();
+  },
 });
 
 if (permission.granted) {
-  const inputData = permission.field(article); // OR
-  const inputData = permission.grant('.*').field(article);
+  const inputData = permission.field(article);
 
   // the `inputData` has not `owner` property
   // do something and then return results to user

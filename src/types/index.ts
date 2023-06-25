@@ -1,3 +1,2 @@
-export * from './acl.interface';
-export * from './grant.interface';
-export * from './permission.interface';
+export * from './policy.type';
+export * from './common.type';

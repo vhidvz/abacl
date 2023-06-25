@@ -17,7 +17,7 @@ export function scope(str: string, options?: ControlOptions) {
   options.sep = options.sep ?? SEP;
   options.strict = options.strict ?? STRICT;
 
-  return options.strict ? str : `.+[^${options.sep}]`;
+  return options.strict ? str : `[^${options.sep}][^${options.sep}]*`;
 }
 
 export function pattern(val: ScopeValue, type: PropType, options?: ControlOptions) {
@@ -29,19 +29,8 @@ export function pattern(val: ScopeValue, type: PropType, options?: ControlOption
   return `${val.main}${options?.sep ?? SEP}${scope(val.scope, options)}`;
 }
 
-export function normalize<T = string>(val: T | ScopeValue, type: PropType, options?: ControlOptions) {
-  const sep = options?.sep ?? SEP;
-
-  const get = () => (typeof val === 'string' ? parse(val, sep) : val);
-
-  const value = get() as ScopeValue;
-  if (type === 'subject') value.scope = value.scope ?? NULL;
-  else if (type === 'action') value.scope = value.scope ?? ANY;
-  else if (type === 'object') value.scope = value.scope ?? ALL;
-  else throw new Error('Pattern type is not valid');
-
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return `${value.main}${sep}${scope(value.scope!, options)}`;
+export function normalize(str: any, type: PropType, options?: ControlOptions) {
+  return pattern(parse(str, options?.sep ?? SEP), type, options);
 }
 
 export function key<Sub = string, Act = string, Obj = string>(polity: Policy<Sub, Act, Obj>, sep = SEP) {

@@ -17,6 +17,11 @@ describe('test acl class', () => {
     expect(acl.exists({ subject: 'nothing', action: 'nothing', object: 'nothing' })).toBeFalsy();
   });
 
+  it('should delete policy from policies', () => {
+    expect(acl.delete(policies[1])).toBeTruthy();
+    expect(acl.exists(policies[1])).toBeFalsy();
+  });
+
   it('should throw exception on duplication', () => {
     const arrowFn = () => acl.update({ subject: Role.Admin, action: 'any', object: 'all' });
     expect(arrowFn).toThrowError(Error('policy with subject "admin", action "any" and object "all" already exists'));
