@@ -21,7 +21,38 @@ The Attribute-Based Access-Control Library let you define five `can` access abil
 
 ## Quick Start Guide
 
-> Read more on defining `scoped` `action` and `object` ability in this [link](https://vhidvz.github.io/blog/post-abac/).
+### ABAC vs RBAC?
+
+| **Question**       | **RBAC**                          | **ABAC**                                    |
+| ------------------ | --------------------------------- | ------------------------------------------- |
+| Who can access?    | :heavy_check_mark:                | :heavy_check_mark:                          |
+| How can operate?   | :white_check_mark: CRUD           | :heavy_check_mark: With more options        |
+| What resource?     | :white_check_mark: Not Bad At All | :heavy_check_mark: More control on resource |
+| Where user can do? | :x:                               | :heavy_check_mark: Supported by IP and CIDR |
+| When user can do?  | :x:                               | :heavy_check_mark: Supported by CRON        |
+| Best structure?    | Monolithic Apps                   | PWA, Restfull, GraphQL                      |
+| Suitable for?      | Small and medium projects         | Medium and large projects                   |
+
+### What's Scope?
+
+Definition as a verb is:
+
+- look at carefully; scan.
+- assess or investigate something.
+
+In this library, I have scoped `action` and `object` which means you can have more control over these attributes.
+
+Assume you have a publisher website with four types of users with the following roles:
+
+- `admin` super user can do anything
+- `manager` can do anything on articles
+- `guest` can read only published article
+- `user` the writers with limitations on time and location of article creation.
+
+In microservice design patterns and restful's based on my opinion one of the best practices has focused on resource management, a single endpoint with a concentration on objects is better than having multiple endpoints or having complex business logic.
+
+Now, if you want to handle all these policies in one place (e.g. `GET endpoint` read permission) how you can do this?
+we suppose you use the `scoped` policy or `ability` grant definition instead of having multiple endpoints or having complex business logic.
 
 ### installation
 
@@ -29,7 +60,7 @@ The Attribute-Based Access-Control Library let you define five `can` access abil
 npm install --save abacl
 ```
 
-### Usage
+### Usage and Dangling
 
 Define your user policies as a json array, so you can store it in your database:
 
@@ -122,7 +153,7 @@ const article = {
 Create a new access control object, then get the permission grants:
 
 ```ts
-import AccessControl, { normalize } from 'abacl';
+import AccessControl from 'abacl';
 
 // The `strict` `AccessControlOption` control the scoped functionality
 // default strict value is true, you can change it on the `can` method
@@ -131,7 +162,7 @@ const ac = new AccessControl(policies, { strict: false });
 const permission = ac.can([user.subject], 'read', 'article');
 
 // change strict mode dynamically, Example:
-// const strictPermission = ac.can([user.subject], 'read', 'article', undefined, { strict: true });
+// const strictPermission = ac.can([user.subject], 'read', 'article', { strict: true });
 
 /**
  *   it('should change strict mode dynamically', () => {
@@ -140,7 +171,7 @@ const permission = ac.can([user.subject], 'read', 'article');
  *     expect(ac.can([Role.User], 'read', 'article:published').granted).toBeFalsy();
  *
  *     // After changing strict mode
- *     expect(ac.can([Role.User], 'read', 'article:published', undefined, { strict: false }).granted).toBeTruthy();
+ *     expect(ac.can([Role.User], 'read', 'article:published', { strict: false }).granted).toBeTruthy();
  *   });
  *
  * */
