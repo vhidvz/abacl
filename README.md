@@ -1,4 +1,4 @@
-# Attribute Based Access Control Library
+# Attribute-Based Access Control Library
 
 [![npm](https://img.shields.io/npm/v/abacl)](https://www.npmjs.com/package/abacl)
 [![Coverage](https://raw.githubusercontent.com/vhidvz/abacl/master/coverage-badge.svg)](https://htmlpreview.github.io/?https://github.com/vhidvz/abacl/blob/master/docs/coverage/lcov-report/index.html)
@@ -19,8 +19,6 @@ The Attribute-Based Access-Control Library let you define five `can` access abil
 - Where can? the answer is `location` - With IP and CIDR you can find the location of users.
 - When can it? the answer is `time` - objects availabilities with cron expression and a duration.
 
-## Quick Start Guide
-
 ### ABAC vs RBAC?
 
 | **Question**       | **RBAC**                          | **ABAC**                                    |
@@ -35,12 +33,12 @@ The Attribute-Based Access-Control Library let you define five `can` access abil
 
 ### What's Scope?
 
-Definition as a verb is:
-
 - look at carefully; scan.
 - assess or investigate something.
 
 In this library, I have scoped `action`, `object` and `subject` which means you can have more control over these attributes.
+
+## Quick Start Guide
 
 ### installation
 
