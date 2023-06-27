@@ -13,7 +13,7 @@
 
 The Attribute-Based Access-Control Library let you define five `can` access ability:
 
-- Who can? the answer is `subject` - Like RBAC a user can have multiple roles.
+- Who can? the answer is `subject` - Like RBAC a user can have multiple subjects.
 - How can it? the answer is `action` - You can define `any` actions you want (scoped).
 - What can? the answer is `object` - You can define `all` objects you want (scoped).
 - Where can? the answer is `location` - With IP and CIDR you can find the location of users.
@@ -40,19 +40,7 @@ Definition as a verb is:
 - look at carefully; scan.
 - assess or investigate something.
 
-In this library, I have scoped `action` and `object` which means you can have more control over these attributes.
-
-Assume you have a publisher website with four types of users with the following roles:
-
-- `admin` super user can do anything
-- `manager` can do anything on articles
-- `guest` can read only published article
-- `user` the writers with limitations on time and location of article creation.
-
-In microservice design patterns and restful's based on my opinion one of the best practices has focused on resource management, a single endpoint with a concentration on objects is better than having multiple endpoints or having complex business logic.
-
-Now, if you want to handle all these policies in one place (e.g. `GET endpoint` read permission) how you can do this?
-we suppose you use the `scoped` policy or `ability` grant definition instead of having multiple endpoints or having complex business logic.
+In this library, I have scoped `action`, `object` and `subject` which means you can have more control over these attributes.
 
 ### installation
 

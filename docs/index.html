@@ -24,7 +24,7 @@
 <a href="https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml"><img src="https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml/badge.svg" alt="Build, Test and Publish"></a></p>
 <p>The Attribute-Based Access-Control Library let you define five <code>can</code> access ability:</p>
 <ul>
-<li>Who can? the answer is <code>subject</code> - Like RBAC a user can have multiple roles.</li>
+<li>Who can? the answer is <code>subject</code> - Like RBAC a user can have multiple subjects.</li>
 <li>How can it? the answer is <code>action</code> - You can define <code>any</code> actions you want (scoped).</li>
 <li>What can? the answer is <code>object</code> - You can define <code>all</code> objects you want (scoped).</li>
 <li>Where can? the answer is <code>location</code> - With IP and CIDR you can find the location of users.</li>
@@ -79,17 +79,7 @@
 <li>look at carefully; scan.</li>
 <li>assess or investigate something.</li>
 </ul>
-<p>In this library, I have scoped <code>action</code> and <code>object</code> which means you can have more control over these attributes.</p>
-<p>Assume you have a publisher website with four types of users with the following roles:</p>
-<ul>
-<li><code>admin</code> super user can do anything</li>
-<li><code>manager</code> can do anything on articles</li>
-<li><code>guest</code> can read only published article</li>
-<li><code>user</code> the writers with limitations on time and location of article creation.</li>
-</ul>
-<p>In microservice design patterns and restful&#39;s based on my opinion one of the best practices has focused on resource management, a single endpoint with a concentration on objects is better than having multiple endpoints or having complex business logic.</p>
-<p>Now, if you want to handle all these policies in one place (e.g. <code>GET endpoint</code> read permission) how you can do this?
-we suppose you use the <code>scoped</code> policy or <code>ability</code> grant definition instead of having multiple endpoints or having complex business logic.</p>
+<p>In this library, I have scoped <code>action</code>, <code>object</code> and <code>subject</code> which means you can have more control over these attributes.</p>
 <a id="md:installation" class="tsd-anchor"></a><h3><a href="#md:installation">installation</a></h3><pre><code class="language-sh"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">install</span><span class="hl-1"> </span><span class="hl-3">--save</span><span class="hl-1"> </span><span class="hl-2">abacl</span>
 </code><button>Copy</button></pre>
 <a id="md:usage-and-dangling" class="tsd-anchor"></a><h3><a href="#md:usage-and-dangling">Usage and Dangling</a></h3><p>Define your user policies as a json array, so you can store it in your database:</p>

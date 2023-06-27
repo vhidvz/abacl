@@ -1,5 +1,5 @@
 import { filterByNotation, key, log, regex, validate } from '../utils';
-import { POLICY_NOTATION, SEP, STRICT } from '../consts';
+import { ALL, ANY, POLICY_NOTATION, SEP, STRICT } from '../consts';
 import { ControlOptions, Policy } from '../types';
 import { Permission } from './permission.class';
 import { Grant } from './grant.class';
@@ -66,10 +66,16 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
     let granted = false;
     const grant = new Grant<Sub, Act, Obj>([], { sep, strict });
     for (const key in this.present)
-      subjects.forEach(
-        (subject) =>
-          regex({ subject, action, object }, { sep, strict }).test(key) && (granted = true) && grant.update(this.present[key]),
-      );
+      subjects.forEach((subject) => {
+        const pattern = regex({ subject, action, object }, { sep, strict });
+
+        const pattern_all = regex({ subject, action: ANY, object: ALL }, { sep, strict });
+        const pattern_action = regex({ subject, action: ANY, object }, { sep, strict });
+        const pattern_object = regex({ subject, action, object: ALL }, { sep, strict });
+
+        if ([pattern, pattern_all, pattern_action, pattern_object].some((p) => p.test(key)))
+          (granted = true) && !grant.exists(this.present[key]) && grant.update(this.present[key]);
+      });
 
     if (granted && options?.callable) granted &&= !!options.callable(new Permission(granted, grant));
 

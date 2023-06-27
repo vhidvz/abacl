@@ -20,6 +20,9 @@ describe('test acl class', () => {
   it('should delete policy from policies', () => {
     expect(acl.delete(policies[1])).toBeTruthy();
     expect(acl.exists(policies[1])).toBeFalsy();
+
+    expect(() => acl.update(policies[1])).not.toThrowError();
+    expect(acl.exists(policies[1])).toBeTruthy();
   });
 
   it('should throw exception on duplication', () => {
@@ -36,5 +39,10 @@ describe('test acl class', () => {
     expect(acl.can([Role.User], 'read', 'article:published', { strict: false }).granted).toBeTruthy();
 
     expect(acl.can([Role.User], 'read', 'article:published', { strict: false, callable: () => false }).granted).toBeFalsy();
+  });
+
+  it('should return true granted on any/all', () => {
+    expect(acl.can([Role.Admin], 'read', 'article').granted).toBeTruthy();
+    expect(acl.can([Role.Manager], 'read', 'article').granted).toBeTruthy();
   });
 });

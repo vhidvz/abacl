@@ -11,6 +11,20 @@ describe('test grant class', () => {
     expect(grant.policies).toEqual(policies);
   });
 
+  it('should check exists policy in db', () => {
+    expect(grant.exists(policies[0])).toBeTruthy();
+
+    expect(grant.exists({ subject: 'nothing', action: 'nothing', object: 'nothing' })).toBeFalsy();
+  });
+
+  it('should delete policy from policies', () => {
+    expect(grant.delete(policies[1])).toBeTruthy();
+    expect(grant.exists(policies[1])).toBeFalsy();
+
+    expect(() => grant.update(policies[1])).not.toThrowError();
+    expect(grant.exists(policies[1])).toBeTruthy();
+  });
+
   it('should throw exception on duplication', () => {
     const arrowFn = () => grant.update({ subject: Role.Admin, action: 'any', object: 'all' });
     expect(arrowFn).toThrowError(Error('policy with subject "admin", action "any" and object "all" already exists'));
@@ -42,7 +56,7 @@ describe('test grant class', () => {
     expect(grant.subjects({ action: normalize('read', 'action') })).toEqual(['guest']);
 
     expect(grant.subjects({ action: normalize('read', 'action', { strict: true }) })).toEqual(['guest']);
-    expect(grant.subjects({ action: normalize('read', 'action', { strict: false }) })).toEqual(['guest', 'user']);
+    expect(grant.subjects({ action: normalize('read', 'action', { strict: false }) })).toEqual(['user', 'guest']);
   });
 
   it('should check time accessibility', () => {

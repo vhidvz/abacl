@@ -30,6 +30,14 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     return Object.values(this.present);
   }
 
+  exists(policy: Policy<Sub, Act, Obj>): boolean {
+    return key(policy, this.options.sep) in this.present;
+  }
+
+  delete(policy: Policy<Sub, Act, Obj>): boolean {
+    return delete this.present[key(policy, this.options.sep)];
+  }
+
   has(pattern: PolicyPattern): boolean {
     if (!Object.keys(pattern).length) throw new Error('Pattern is required');
 
