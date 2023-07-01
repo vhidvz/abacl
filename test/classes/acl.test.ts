@@ -1,4 +1,4 @@
-import { AccessControl } from '../../src';
+import { AccessControl, pattern } from '../../src';
 import { Role, policies } from '../mock';
 
 describe('test acl class', () => {
@@ -44,5 +44,31 @@ describe('test acl class', () => {
   it('should return true granted on any/all', () => {
     expect(acl.can([Role.Admin], 'read', 'article').granted).toBeTruthy();
     expect(acl.can([Role.Manager], 'read', 'article').granted).toBeTruthy();
+  });
+
+  it('should return permission with callable', () => {
+    const article = {
+      id: '5f4d1e2c-a7b2-40',
+      owner: 'vhid.vz@gmail.com',
+      title: 'sample title',
+      content: 'sample content',
+      tags: ['tag'],
+    };
+
+    const createPermission = acl.can([Role.Manager], 'create', 'article');
+    expect(createPermission.field(article, () => ({ action: pattern({ main: 'create' }, 'action') }))).toEqual({
+      id: '5f4d1e2c-a7b2-40',
+      owner: 'vhid.vz@gmail.com',
+      title: 'sample title',
+      content: 'sample content',
+      tags: ['tag'],
+    });
+
+    const updatePermission = acl.can([Role.Manager], 'update', 'article', { strict: false });
+    expect(updatePermission.field(article, () => ({ action: pattern({ main: 'update' }, 'action', { strict: false }) }))).toEqual({
+      title: 'sample title',
+      content: 'sample content',
+      tags: ['tag'],
+    });
   });
 });

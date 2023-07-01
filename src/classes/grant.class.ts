@@ -197,7 +197,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     pattern?: PolicyPattern | (<T>(data: T) => PolicyPattern),
   ) {
     const notations: string[][] = [];
-    if (!pattern || !Object.keys(pattern).length) {
+    if (typeof pattern !== 'function' && (!pattern || !Object.keys(pattern).length)) {
       for (const notation of policies.filter((p) => p[type]?.length).map((p) => p[type])) notation && notations.push(notation);
     } else {
       const add = (options: AddOption[]) => {

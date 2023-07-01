@@ -29,6 +29,12 @@ export const policies: Policy<Role>[] = [
     object: 'article',
   },
   {
+    subject: Role.Manager,
+    action: 'update:shared',
+    object: 'article',
+    field: ['*', '!id', '!owner'],
+  },
+  {
     subject: Role.User,
     action: 'create:own',
     object: 'article',
