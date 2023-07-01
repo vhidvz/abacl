@@ -53,6 +53,12 @@ export const policies: Policy<Role>[] = [
     filter: ['*', '!owner'],
   },
   {
+    subject: Role.Manager,
+    action: 'update:shared',
+    object: 'article',
+    filter: ['*', '!id', '!owner'],
+  },
+  {
     subject: Role.User,
     action: 'delete:own',
     object: 'article',

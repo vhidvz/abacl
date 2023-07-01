@@ -142,5 +142,32 @@ describe('test permission class', () => {
       content: 'sample content',
       tags: ['tag'],
     });
+
+    let customAction = 'CreateProcess';
+    expect(
+      perm.field(article, (_) => {
+        if (customAction === 'CreateProcess') return { action: pattern({ main: 'create' }, 'action', { strict: false }) };
+        else if (customAction === 'UpdateProcess') return { action: pattern({ main: 'update' }, 'action', { strict: false }) };
+        else return {};
+      }),
+    ).toEqual({
+      id: '5f4d1e2c-a7b2-40',
+      title: 'sample title',
+      content: 'sample content',
+      tags: ['tag'],
+    });
+
+    customAction = 'UpdateProcess';
+    expect(
+      perm.field(article, (_) => {
+        if (customAction === 'CreateProcess') return { action: pattern({ main: 'create' }, 'action', { strict: false }) };
+        else if (customAction === 'UpdateProcess') return { action: pattern({ main: 'update' }, 'action', { strict: false }) };
+        else return {};
+      }),
+    ).toEqual({
+      title: 'sample title',
+      content: 'sample content',
+      tags: ['tag'],
+    });
   });
 });
