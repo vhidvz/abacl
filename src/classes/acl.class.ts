@@ -1,23 +1,32 @@
 import { filterByNotation, key, log, regex, validate } from '../utils';
 import { ALL, ANY, POLICY_NOTATION, SEP, STRICT } from '../consts';
-import { ControlOptions, Policy } from '../types';
+import { CacheInterface, ControlOptions, Policy } from '../types';
 import { Permission } from './permission.class';
+import { MemoryDriver } from '../driver';
 import { Grant } from './grant.class';
 
 export interface CanOptions<Sub = string, Act = string, Obj = string> {
   strict?: boolean;
-  callable?: (perm: Permission<Sub, Act, Obj>) => boolean;
+  callable?: (perm: Permission<Sub, Act, Obj>) => boolean | Promise<boolean>;
+}
+
+export interface AccessControlOptions<Sub = string, Act = string, Obj = string> extends ControlOptions {
+  driver?: 'memory' | CacheInterface<Sub, Act, Obj> | (() => CacheInterface<Sub, Act, Obj>);
 }
 
 export class AccessControl<Sub = string, Act = string, Obj = string> {
+  protected driver: CacheInterface<Sub, Act, Obj>;
   protected readonly options: ControlOptions = {};
-  protected present: Record<string, Policy<Sub, Act, Obj>> = {};
 
-  constructor(policies: Policy<Sub, Act, Obj>[], options?: ControlOptions) {
-    const { sep, strict } = options ?? {};
+  constructor(policies: Policy<Sub, Act, Obj>[], options?: AccessControlOptions<Sub, Act, Obj>) {
+    const { sep, strict, driver } = options ?? {};
 
     this.options.sep = sep ?? SEP;
     this.options.strict = strict ?? STRICT;
+
+    if (!driver || driver === 'memory') {
+      this.driver = MemoryDriver.build<Sub, Act, Obj>();
+    } else this.driver = typeof driver === 'function' ? driver() : driver;
 
     if (policies.length) this.policies = policies;
   }
