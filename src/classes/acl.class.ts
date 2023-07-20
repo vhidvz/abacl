@@ -1,6 +1,6 @@
-import { filterByNotation, key, log, regex, validate } from '../utils';
-import { ALL, ANY, POLICY_NOTATION, SEP, STRICT } from '../consts';
+import { ALL, ANY, OK, POLICY_NOTATION, SEP, STRICT } from '../consts';
 import { CacheInterface, ControlOptions, Policy } from '../types';
+import { filterByNotation, log, validate } from '../utils';
 import { Permission } from './permission.class';
 import { MemoryDriver } from '../driver';
 import { Grant } from './grant.class';
@@ -18,54 +18,37 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
   protected driver: CacheInterface<Sub, Act, Obj>;
   protected readonly options: ControlOptions = {};
 
-  constructor(policies: Policy<Sub, Act, Obj>[], options?: AccessControlOptions<Sub, Act, Obj>) {
-    const { sep, strict, driver } = options ?? {};
+  constructor(options?: AccessControlOptions<Sub, Act, Obj>) {
+    const { strict, driver } = options ?? {};
 
-    this.options.sep = sep ?? SEP;
     this.options.strict = strict ?? STRICT;
 
     if (!driver || driver === 'memory') {
       this.driver = MemoryDriver.build<Sub, Act, Obj>();
     } else this.driver = typeof driver === 'function' ? driver() : driver;
-
-    if (policies.length) this.policies = policies;
   }
 
-  set policies(policies: Policy<Sub, Act, Obj>[]) {
-    if (!policies.length) this.present = {};
-
-    for (const policy of policies) this.update(policy);
+  async policies(policies: Policy<Sub, Act, Obj>[]): Promise<(typeof OK)[]> {
+    return Promise.all(policies.map((policy) => this.update(policy)));
   }
 
-  get policies() {
-    return Object.values(this.present);
+  async exists(policy: Policy<Sub, Act, Obj>): Promise<boolean> {
+    return this.driver.has(policy);
   }
 
-  exists(policy: Policy<Sub, Act, Obj>): boolean {
-    return key(policy, this.options.sep) in this.present;
+  async delete(policy: Policy<Sub, Act, Obj>): Promise<typeof OK> {
+    return this.driver.del(policy);
   }
 
-  delete(policy: Policy<Sub, Act, Obj>): boolean {
-    return delete this.present[key(policy, this.options.sep)];
-  }
-
-  update(policy: Policy<Sub, Act, Obj>, deep_copy = true) {
+  async update(policy: Policy<Sub, Act, Obj>): Promise<typeof OK> {
     validate(policy);
 
-    policy = filterByNotation(policy, POLICY_NOTATION, deep_copy);
+    policy = filterByNotation(policy, POLICY_NOTATION, true);
 
-    const add = (key: string) => {
-      if (key in this.present) {
-        const { subject, action, object } = policy;
-        throw new Error(`policy with subject "${subject}", action "${action}" and object "${object}" already exists`);
-      } else this.present[key] = policy;
-    };
-
-    add(key(policy, this.options.sep));
+    return await this.driver.set(policy);
   }
 
-  can(subjects: Sub[], action: Act, object: Obj, options?: CanOptions<Sub, Act, Obj>): Permission<Sub, Act, Obj> {
-    const sep = this.options.sep ?? SEP;
+  async can(subjects: Sub[], action: Act, object: Obj, options?: CanOptions<Sub, Act, Obj>): Promise<Permission<Sub, Act, Obj>> {
     const strict = options?.strict ?? this.options.strict ?? STRICT;
 
     if (!subjects?.length) throw new Error('No subjects given');
@@ -73,18 +56,13 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
     const start = Date.now();
 
     let granted = false;
-    const grant = new Grant<Sub, Act, Obj>([], { sep, strict });
-    for (const key in this.present)
-      subjects.forEach((subject) => {
-        const pattern = regex({ subject, action, object }, { sep, strict });
 
-        const pattern_all = regex({ subject, action: ANY, object: ALL }, { sep, strict });
-        const pattern_action = regex({ subject, action: ANY, object }, { sep, strict });
-        const pattern_object = regex({ subject, action, object: ALL }, { sep, strict });
-
-        if ([pattern, pattern_all, pattern_action, pattern_object].some((p) => p.test(key)))
-          (granted = true) && !grant.exists(this.present[key]) && grant.update(this.present[key]);
-      });
+    const policies = await Promise.all(
+      subjects.map((subject) =>
+        this.driver.get({ subject: { strict, val: subject }, action: { strict, val: action }, object: { val: object, strict } }),
+      ),
+    );
+    const grant = new Grant<Sub, Act, Obj>(policies.flat(), { strict });
 
     if (granted && options?.callable) granted &&= !!options.callable(new Permission(granted, grant));
 

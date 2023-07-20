@@ -1,5 +1,6 @@
 // Default Values
 
+export const OK = 'OK';
 export const SEP = ':';
 export const STRICT = true;
 
