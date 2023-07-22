@@ -140,10 +140,10 @@ export class Grant<Sub = string, Act = string, Obj = string> {
         return Promise.all(
           data.map(async (item) => {
             const notation = accumulate(...(await this.notations(this.policies, item, 'field', cKey)));
-            return filterByNotation(item, notation, false);
+            return notation.length ? filterByNotation(item, notation, false) : item;
           }),
         ) as Data;
-      } else return filterByNotation(data, notation, false);
+      } else return notation.length ? filterByNotation(data, notation, false) : data;
     }
   }
 
@@ -159,10 +159,10 @@ export class Grant<Sub = string, Act = string, Obj = string> {
         return Promise.all(
           data.map(async (item) => {
             const notation = accumulate(...(await this.notations(this.policies, item, 'field', cKey)));
-            return filterByNotation(item, notation, false);
+            return notation.length ? filterByNotation(item, notation, false) : item;
           }),
         ) as Data;
-      } else return filterByNotation(data, notation, false);
+      } else return notation.length ? filterByNotation(data, notation, false) : data;
     }
   }
 

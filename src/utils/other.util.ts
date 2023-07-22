@@ -35,9 +35,9 @@ export function accessibility(time: Time, options?: { currentDate?: Date; tz?: s
 }
 
 export function filterByNotation(data: any, notation: string[], deep_copy = true) {
-  if (deep_copy) data = JSON.parse(JSON.stringify(data));
+  if (!notation.length) throw new Error('Notation should not empty');
 
-  if (!notation.length) return data;
+  if (deep_copy) data = JSON.parse(JSON.stringify(data));
 
   if (Array.isArray(data)) return data.map((datum) => new Notation(datum).filter(notation).value);
   else return new Notation(data).filter(notation).value;
