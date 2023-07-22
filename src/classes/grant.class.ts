@@ -1,20 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isInSubnet } from 'is-in-subnet';
 
-import { PropType, accessibility, accumulate, filterByNotation, isCIDR, key, normalize, parse, validate } from '../utils';
-import { ControlOptions, Policy, PolicyPattern, Time, TimeOptions } from '../types';
+import { ControlOptions, Policy, Pattern, Time, TimeOptions, PropType, CacheKey } from '../types';
+import { accessibility, accumulate, filterByNotation, isCIDR, validate } from '../utils';
 import { POLICY_NOTATION, SEP, STRICT } from '../consts';
-
-type AddOption = { regex: RegExp; type: PropType };
+import { key, parse, pattern } from '../driver';
 
 export class Grant<Sub = string, Act = string, Obj = string> {
   protected readonly options: ControlOptions = {};
   protected present: Record<string, Policy<Sub, Act, Obj>> = {};
 
   constructor(policies: Policy<Sub, Act, Obj>[], options?: ControlOptions) {
-    const { sep, strict } = options ?? {};
+    const { strict } = options ?? {};
 
-    this.options.sep = sep ?? SEP;
     this.options.strict = strict ?? STRICT;
 
     if (policies.length) this.policies = policies;
@@ -31,107 +29,92 @@ export class Grant<Sub = string, Act = string, Obj = string> {
   }
 
   exists(policy: Policy<Sub, Act, Obj>): boolean {
-    return key(policy, this.options.sep) in this.present;
+    return key(policy) in this.present;
   }
 
   delete(policy: Policy<Sub, Act, Obj>): boolean {
-    return delete this.present[key(policy, this.options.sep)];
+    return delete this.present[key(policy)];
   }
 
-  has(pattern: PolicyPattern): boolean {
-    if (!Object.keys(pattern).length) throw new Error('Pattern is required');
+  has<T = string, M = string, S = string>(cKey: CacheKey<T, M, S>): boolean {
+    if (!Object.keys(cKey).length) throw new Error('Cache key is required');
 
-    const test = (regex: RegExp, type: PropType) => policies.some((p) => regex.test(normalize(p[type], type, this.options)));
+    const keys = Object.keys(this.present);
+    const test = (p: Pattern) => keys.some((i) => p.test(i));
 
-    let flag = true;
-    const { subject, action, object } = pattern;
-    const policies = Object.values(this.present);
-    if (subject) flag &&= test(RegExp(subject), 'subject');
-    if (action) flag &&= test(RegExp(action), 'action');
-    if (object) flag &&= test(RegExp(object), 'object');
-
-    return flag && (!!subject || !!action || !!object);
+    return test(pattern(cKey));
   }
 
-  scopes<T = string>(type: PropType, pattern?: PolicyPattern): T[] {
-    const policies = Object.values(this.present);
-
-    if (!pattern || !Object.keys(pattern).length) {
-      return [...new Set<T>(policies.map((p) => parse(p[type]).scope as T).filter((s) => !!s))];
+  scopes<Scope = string, T = string, M = string, S = string>(type: PropType, cKey?: CacheKey<T, M, S>): Scope[] {
+    if (!cKey || !Object.keys(cKey).length) {
+      return [...new Set<Scope>(this.policies.map((p) => parse(p[type]).scope as Scope).filter((s) => !!s))];
     } else {
-      const add = (set: Set<T>, options: AddOption[]) => {
-        policies
-          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
-          .map((p) => parse(p[type]).scope as T)
+      const add = (set: Set<Scope>, patterns: Pattern[]) => {
+        this.policies
+          .filter((p) => patterns.every((pattern) => pattern.test(key(p))))
+          .map((p) => parse(p[type]).scope as Scope)
           .forEach((s) => s && set.add(s));
       };
 
-      const scopes = new Set<T>([]);
-      add(scopes, this.addOptions(pattern));
+      const scopes = new Set<Scope>([]);
+      add(scopes, this.addOptions(cKey));
 
       return [...scopes];
     }
   }
 
-  subjects(pattern?: PolicyPattern): Sub[] {
-    const policies = Object.values(this.present);
-
-    if (!pattern || !Object.keys(pattern).length) return [...new Set<Sub>(policies.map((p) => p.subject))];
+  subjects<T = string, M = string, S = string>(cKey?: CacheKey<T, M, S>): Sub[] {
+    if (!cKey || !Object.keys(cKey).length) return [...new Set<Sub>(this.policies.map((p) => p.subject))];
     else {
-      const add = (set: Set<Sub>, options: AddOption[]) => {
-        policies
-          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
-          .map((p) => set.add(p.subject));
+      const add = (set: Set<Sub>, patterns: Pattern[]) => {
+        this.policies.filter((p) => patterns.every((pattern) => pattern.test(key(p)))).map((p) => set.add(p.subject));
       };
 
       const subjects = new Set<Sub>([]);
-      add(subjects, this.addOptions(pattern));
+      add(subjects, this.addOptions(cKey));
 
       return [...subjects];
     }
   }
 
-  time(pattern?: PolicyPattern, options?: TimeOptions): boolean {
-    const policies = Object.values(this.present);
-
-    const sep = this.options.sep ?? SEP;
+  time<T = string, M = string, S = string>(cKey?: CacheKey<T, M, S>, options?: TimeOptions): boolean {
     const times: Record<string, Time> = {};
-    if (!pattern || !Object.keys(pattern).length) {
-      for (const time of policies.filter((p) => p.time?.length).map((p) => p.time))
-        time?.forEach((t) => t && (times[`${t.cron_exp}${sep}${t.duration}`] = t));
+
+    if (!cKey || !Object.keys(cKey).length) {
+      for (const time of this.policies.filter((p) => p.time?.length).map((p) => p.time))
+        time?.forEach((t) => t && (times[`${t.cron_exp}${SEP}${t.duration}`] = t));
     } else {
-      const add = (options: AddOption[]) => {
-        policies
-          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
+      const add = (patterns: Pattern[]) => {
+        this.policies
+          .filter((p) => patterns.every((pattern) => pattern.test(key(p))))
           .map((p) => p.time)
           .flat()
-          .forEach((t) => t && (times[`${t.cron_exp}${sep}${t.duration}`] = t));
+          .forEach((t) => t && (times[`${t.cron_exp}${SEP}${t.duration}`] = t));
       };
 
-      add(this.addOptions(pattern));
+      add(this.addOptions(cKey));
     }
 
     if (!Object.keys(times).length) return true;
     else return Object.values(times).some((t) => accessibility(t, options));
   }
 
-  location(ip: string, pattern?: PolicyPattern): boolean {
-    const policies = Object.values(this.present);
-
+  location<T = string, M = string, S = string>(ip: string, cKey?: CacheKey<T, M, S>): boolean {
     const locations = new Set<string>([]);
-    if (!pattern || !Object.keys(pattern).length) {
-      for (const location of policies.filter((p) => p.location?.length).map((p) => p.location))
+
+    if (!cKey || !Object.keys(cKey).length) {
+      for (const location of this.policies.filter((p) => p.location?.length).map((p) => p.location))
         location?.forEach((l) => l && locations.add(l));
     } else {
-      const add = (options: AddOption[]) => {
-        policies
-          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
+      const add = (patterns: Pattern[]) => {
+        this.policies
+          .filter((p) => patterns.every((pattern) => pattern.test(key(p))))
           .map((p) => p.location)
           .flat()
           .forEach((l) => l && locations.add(l));
       };
 
-      add(this.addOptions(pattern));
+      add(this.addOptions(cKey));
     }
 
     if (!locations.size) return true;
@@ -145,40 +128,48 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     }
   }
 
-  field<T>(data: any, pattern?: PolicyPattern | (<T>(data: T) => PolicyPattern), deep_copy = false): T {
-    const policies = Object.values(this.present);
+  async field<Data, T = string, M = string, S = string>(
+    data: any,
+    cKey?: CacheKey<T, M, S> | (<Data>(data: Data) => CacheKey<T, M, S> | Promise<CacheKey<T, M, S>>),
+  ): Promise<Data> {
+    const notation = accumulate(...(await this.notations(this.policies, data, 'field', cKey)));
 
-    const notation = accumulate(...this.notations(policies, data, 'field', pattern));
-    if (!notation.length) return (deep_copy ? JSON.parse(JSON.stringify(data)) : data) as T;
+    if (!notation.length) return data as Data;
     else {
-      if (typeof pattern === 'function' && typeof data === 'object' && Array.isArray(data)) {
-        return data.map((item) => {
-          const notation = accumulate(...this.notations(policies, item, 'field', pattern));
-          return filterByNotation(item, notation, deep_copy) as T;
-        }) as T;
-      } else return filterByNotation(data, notation, deep_copy) as T;
+      if (typeof cKey === 'function' && typeof data === 'object' && Array.isArray(data)) {
+        return Promise.all(
+          data.map(async (item) => {
+            const notation = accumulate(...(await this.notations(this.policies, item, 'field', cKey)));
+            return filterByNotation(item, notation, false);
+          }),
+        ) as Data;
+      } else return filterByNotation(data, notation, false);
     }
   }
 
-  filter<T>(data: any, pattern?: PolicyPattern | (<T>(data: T) => PolicyPattern), deep_copy = false): T {
-    const policies = Object.values(this.present);
+  async filter<Data, T = string, M = string, S = string>(
+    data: any,
+    cKey?: CacheKey<T, M, S> | (<Data>(data: Data) => CacheKey<T, M, S> | Promise<CacheKey<T, M, S>>),
+  ): Promise<Data> {
+    const notation = accumulate(...(await this.notations(this.policies, data, 'filter', cKey)));
 
-    const notation = accumulate(...this.notations(policies, data, 'filter', pattern));
-    if (!notation.length) return (deep_copy ? JSON.parse(JSON.stringify(data)) : data) as T;
+    if (!notation.length) return data as Data;
     else {
-      if (typeof pattern === 'function' && typeof data === 'object' && Array.isArray(data)) {
-        return data.map((item) => {
-          const notation = accumulate(...this.notations(policies, item, 'filter', pattern));
-          return filterByNotation(item, notation, deep_copy) as T;
-        }) as T;
-      } else return filterByNotation(data, notation, deep_copy) as T;
+      if (typeof cKey === 'function' && typeof data === 'object' && Array.isArray(data)) {
+        return Promise.all(
+          data.map(async (item) => {
+            const notation = accumulate(...(await this.notations(this.policies, item, 'field', cKey)));
+            return filterByNotation(item, notation, false);
+          }),
+        ) as Data;
+      } else return filterByNotation(data, notation, false);
     }
   }
 
-  update(policy: Policy<Sub, Act, Obj>, deep_copy = true) {
+  update(policy: Policy<Sub, Act, Obj>) {
     validate(policy);
 
-    policy = filterByNotation(policy, POLICY_NOTATION, deep_copy);
+    policy = filterByNotation(policy, POLICY_NOTATION, false);
 
     const add = (key: string) => {
       if (key in this.present) {
@@ -187,38 +178,38 @@ export class Grant<Sub = string, Act = string, Obj = string> {
       } else this.present[key] = policy;
     };
 
-    add(key(policy, this.options.sep));
+    add(key(policy));
   }
 
-  protected notations(
+  protected async notations<T = string, M = string, S = string>(
     policies: Policy<Sub, Act, Obj>[],
     data: any,
     type: 'filter' | 'field',
-    pattern?: PolicyPattern | (<T>(data: T) => PolicyPattern),
+    cKey?: CacheKey<T, M, S> | (<Data>(data: Data) => CacheKey<T, M, S> | Promise<CacheKey<T, M, S>>),
   ) {
     const notations: string[][] = [];
-    if (typeof pattern !== 'function' && (!pattern || !Object.keys(pattern).length)) {
+    if (typeof cKey !== 'function' && (!cKey || !Object.keys(cKey).length)) {
       for (const notation of policies.filter((p) => p[type]?.length).map((p) => p[type])) notation && notations.push(notation);
     } else {
-      const add = (options: AddOption[]) => {
+      const add = (patterns: Pattern[]) => {
         policies
-          .filter((p) => options.every(({ regex, type }) => regex.test(normalize(p[type], type))))
+          .filter((p) => patterns.every((pattern) => pattern.test(key(p))))
           .map((p) => p[type])
           .forEach((f) => f && notations.push(f));
       };
 
-      add(this.addOptions(typeof pattern === 'function' ? pattern(data) : pattern));
+      add(this.addOptions(typeof cKey === 'function' ? await cKey(data) : cKey));
     }
 
     return notations;
   }
 
-  private addOptions(pattern: PolicyPattern) {
-    const options: AddOption[] = [];
-    const { subject, action, object } = pattern;
-    if (subject) options.push({ regex: RegExp(subject), type: 'subject' });
-    if (action) options.push({ regex: RegExp(action), type: 'action' });
-    if (object) options.push({ regex: RegExp(object), type: 'object' });
-    return options;
+  private addOptions<T = string, M = string, S = string>(cKey: CacheKey<T, M, S>) {
+    const patterns: Pattern[] = [];
+    const { subject, action, object } = cKey;
+    if (subject) patterns.push(pattern({ subject }));
+    if (action) patterns.push(pattern({ action }));
+    if (object) patterns.push(pattern({ object }));
+    return patterns;
   }
 }

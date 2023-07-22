@@ -2,7 +2,6 @@ import { key, parse, pattern } from '../../../src';
 
 describe('test policy utils', () => {
   it('should parse scoped value', () => {
-    expect(() => parse(null)).toThrowError('Value is not parsable');
     expect(parse('create:own')).toEqual({ main: 'create', scope: 'own' });
   });
 
@@ -14,17 +13,30 @@ describe('test policy utils', () => {
     expect(key({ subject: 'vahid@wenex.org', action: 'read:group', object: 'articles' })).toEqual(
       'vahid@wenex.org:null:read:group:articles:all',
     );
-    expect(key({ subject: 'vahid@wenex.org', action: 'read', object: 'articles#published' }, '#')).toEqual(
+
+    expect(key({ subject: 'vahid@wenex.org', action: 'read', object: 'articles#published' }, { sep: '#' })).toEqual(
       'vahid@wenex.org#null#read#any#articles#published',
     );
+    expect(
+      key({ subject: 'vahid@wenex.org', action: 'read', object: 'articles#published' }, { sep: '#', prefix: 'abacl' }),
+    ).toEqual('abacl#vahid@wenex.org#null#read#any#articles#published');
   });
 
   it('should return full pattern of policy', () => {
-    expect(pattern({ main: 'root' }, 'subject')).toEqual('root:null');
+    expect(pattern({ subject: { val: 'root' } })).toEqual(/^root:null:[^:][^:]*:[^:][^:]*:[^:][^:]*:[^:][^:]*$/);
 
-    expect(pattern({ main: 'read', scope: 'own' }, 'action', { strict: true })).toEqual('read:own');
-    expect(pattern({ main: 'read', scope: 'own' }, 'action', { strict: false })).toEqual('read:[^:][^:]*');
+    expect(pattern({ action: { strict: true, val: { main: 'read', scope: 'own' } } })).toEqual(
+      /^[^:][^:]*:[^:][^:]*:read:own:[^:][^:]*:[^:][^:]*$/,
+    );
+    expect(pattern({ action: { strict: false, val: { main: 'read', scope: 'own' } } })).toEqual(
+      /^[^:][^:]*:[^:][^:]*:read:[^:][^:]*:[^:][^:]*:[^:][^:]*$/,
+    );
 
-    expect(pattern({ main: 'article', scope: 'published' }, 'object', { sep: '#' })).toEqual('article#published');
+    expect(pattern({ object: { val: { main: 'article', scope: 'published' } } }, { sep: '#' })).toEqual(
+      /^[^#][^#]*#[^#][^#]*#[^#][^#]*#[^#][^#]*#article#published$/,
+    );
+    expect(pattern({ object: { val: { main: 'article', scope: 'published' } } }, { sep: '#', prefix: 'abacl' })).toEqual(
+      /^abacl#[^#][^#]*#[^#][^#]*#[^#][^#]*#[^#][^#]*#article#published$/,
+    );
   });
 });

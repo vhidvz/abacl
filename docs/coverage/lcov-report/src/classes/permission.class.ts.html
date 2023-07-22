@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>54/54</span>
+                <span class='fraction'>59/59</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>54/54</span>
+                <span class='fraction'>59/59</span>
             </div>
         
             
@@ -117,8 +117,12 @@
 <a name='L52'></a><a href='#L52'>52</a>
 <a name='L53'></a><a href='#L53'>53</a>
 <a name='L54'></a><a href='#L54'>54</a>
-<a name='L55'></a><a href='#L55'>55</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -158,8 +162,14 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -172,9 +182,8 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/* eslint-disable @typescript-eslint/no-explicit-any */
-import { ControlOptions, Policy, PolicyPattern, TimeOptions } from '../types';
+import { CacheKey, ControlOptions, Policy, PropType, TimeOptions } from '../types';
 import { Grant } from './grant.class';
-import { PropType } from '../utils';
 &nbsp;
 export class Permission&lt;Sub = string, Act = string, Obj = string&gt; {
   readonly granted: boolean;
@@ -189,32 +198,38 @@ export class Permission&lt;Sub = string, Act = string, Obj = string&gt; {
     return this.grant.policies;
   }
 &nbsp;
-  has(pattern: PolicyPattern): boolean {
-    return this.grant.has(pattern);
+  has&lt;T = string, M = string, S = string&gt;(cKey: CacheKey&lt;T, M, S&gt;): boolean {
+    return this.grant.has&lt;T, M, S&gt;(cKey);
   }
 &nbsp;
-  scopes&lt;T = string&gt;(type: PropType, pattern?: PolicyPattern): T[] {
-    return this.grant.scopes&lt;T&gt;(type, pattern);
+  scopes&lt;Scope = string, T = string, M = string, S = string&gt;(type: PropType, cKey?: CacheKey&lt;T, M, S&gt;): Scope[] {
+    return this.grant.scopes&lt;Scope, T, M, S&gt;(type, cKey);
   }
 &nbsp;
-  subjects(pattern?: PolicyPattern): Sub[] {
-    return this.grant.subjects(pattern);
+  subjects&lt;T = string, M = string, S = string&gt;(cKey?: CacheKey&lt;T, M, S&gt;): Sub[] {
+    return this.grant.subjects&lt;T, M, S&gt;(cKey);
   }
 &nbsp;
-  time(pattern?: PolicyPattern, options?: TimeOptions): boolean {
-    return this.grant.time(pattern, options);
+  time&lt;T = string, M = string, S = string&gt;(cKey?: CacheKey&lt;T, M, S&gt;, options?: TimeOptions): boolean {
+    return this.grant.time&lt;T, M, S&gt;(cKey, options);
   }
 &nbsp;
-  location(ip: string, pattern?: PolicyPattern): boolean {
-    return this.grant.location(ip, pattern);
+  location&lt;T = string, M = string, S = string&gt;(ip: string, cKey?: CacheKey&lt;T, M, S&gt;): boolean {
+    return this.grant.location&lt;T, M, S&gt;(ip, cKey);
   }
 &nbsp;
-  field&lt;T&gt;(data: any, pattern?: PolicyPattern | (&lt;T&gt;(data: T) =&gt; PolicyPattern), deep_copy = false): T {
-    return this.grant.field&lt;T&gt;(data, pattern, deep_copy);
+  async field&lt;Data, T = string, M = string, S = string&gt;(
+    data: any,
+    cKey?: CacheKey&lt;T, M, S&gt; | (&lt;Data&gt;(data: Data) =&gt; CacheKey&lt;T, M, S&gt; | Promise&lt;CacheKey&lt;T, M, S&gt;&gt;),
+  ): Promise&lt;Data&gt; {
+    return this.grant.field&lt;Data, T, M, S&gt;(data, cKey);
   }
 &nbsp;
-  filter&lt;T&gt;(data: any, pattern?: PolicyPattern | (&lt;T&gt;(data: T) =&gt; PolicyPattern), deep_copy = false): T {
-    return this.grant.filter&lt;T&gt;(data, pattern, deep_copy);
+  async filter&lt;Data, T = string, M = string, S = string&gt;(
+    data: any,
+    cKey?: CacheKey&lt;T, M, S&gt; | (&lt;Data&gt;(data: Data) =&gt; CacheKey&lt;T, M, S&gt; | Promise&lt;CacheKey&lt;T, M, S&gt;&gt;),
+  ): Promise&lt;Data&gt; {
+    return this.grant.filter&lt;Data, T, M, S&gt;(data, cKey);
   }
 &nbsp;
   static build&lt;Sub = string, Act = string, Obj = string&gt;(
@@ -232,7 +247,7 @@ export class Permission&lt;Sub = string, Act = string, Obj = string&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2023-07-01T18:48:18.458Z
+                at 2023-07-22T12:05:36.425Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

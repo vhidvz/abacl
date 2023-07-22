@@ -18,7 +18,7 @@ export class MemoryDriver<Sub = string, Act = string, Obj = string> implements C
     const p = pattern(cKey, this.options);
 
     const policies: Policy<Sub, Act, Obj>[] = [];
-    for (const index in Object.keys(this.present)) {
+    for (const index of Object.keys(this.present)) {
       if (p.test(index)) policies.push(this.present[index]);
     }
 

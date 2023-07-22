@@ -1,4 +1,4 @@
-import { ALL, ANY, Permission, normalize, pattern } from '../../src';
+import { ALL, ANY, Permission } from '../../src';
 import { Role, policies } from '../mock';
 
 describe('test permission class', () => {
@@ -12,32 +12,28 @@ describe('test permission class', () => {
   });
 
   it('should verify has pattern exists', () => {
-    expect(perm.has({ subject: pattern({ main: Role.Admin }, 'subject') })).toBeTruthy();
+    expect(perm.has({ subject: { val: Role.Admin } })).toBeTruthy();
 
-    expect(perm.has({ action: normalize(ANY, 'action'), object: normalize(ALL, 'object') })).toBeTruthy();
+    expect(perm.has({ action: { val: ANY }, object: { val: ALL } })).toBeTruthy();
   });
 
   it('should return perm scopes', () => {
     expect(perm.scopes('subject')).toEqual([]);
 
-    expect(perm.scopes('action')).toEqual(['own', 'shared']);
     expect(perm.scopes('object')).toEqual(['published']);
+    expect(perm.scopes('action')).toEqual(['own', 'shared']);
 
-    expect(
-      perm.scopes('action', { subject: normalize('user', 'subject'), action: normalize('read', 'action', { strict: true }) }),
-    ).toEqual([]);
-    expect(
-      perm.scopes('action', { subject: normalize('user', 'subject'), action: normalize('read', 'action', { strict: false }) }),
-    ).toEqual(['own', 'shared']);
+    expect(perm.scopes('action', { subject: { val: 'user' }, action: { val: 'read', strict: true } })).toEqual([]);
+    expect(perm.scopes('action', { subject: { val: 'user' }, action: { val: 'read', strict: false } })).toEqual(['own', 'shared']);
   });
 
   it('should return perm subjects', () => {
     expect(perm.subjects()).toEqual(['admin', 'guest', 'manager', 'user']);
 
-    expect(perm.subjects({ action: normalize('read', 'action') })).toEqual(['guest']);
+    expect(perm.subjects({ action: { val: 'read' } })).toEqual(['guest']);
 
-    expect(perm.subjects({ action: normalize('read', 'action', { strict: true }) })).toEqual(['guest']);
-    expect(perm.subjects({ action: normalize('read', 'action', { strict: false }) })).toEqual(['guest', 'user']);
+    expect(perm.subjects({ action: { val: 'read', strict: true } })).toEqual(['guest']);
+    expect(perm.subjects({ action: { val: 'read', strict: false } })).toEqual(['guest', 'user']);
   });
 
   it('should check time accessibility', () => {
@@ -47,8 +43,8 @@ describe('test permission class', () => {
     expect(perm.time({}, { currentDate: positiveDate, tz: 'Asia/Tehran' })).toBeTruthy();
     expect(perm.time({}, { currentDate: negativeDate, tz: 'Asia/Tehran' })).toBeFalsy();
 
-    expect(perm.time({ subject: normalize('admin', 'subject') }, { currentDate: positiveDate, tz: 'Asia/Tehran' })).toBeTruthy();
-    expect(perm.time({ subject: normalize('admin', 'subject') }, { currentDate: negativeDate, tz: 'Asia/Tehran' })).toBeTruthy();
+    expect(perm.time({ subject: { val: 'admin' } }, { currentDate: positiveDate, tz: 'Asia/Tehran' })).toBeTruthy();
+    expect(perm.time({ subject: { val: 'admin' } }, { currentDate: negativeDate, tz: 'Asia/Tehran' })).toBeTruthy();
   });
 
   it('should check location accessibility', () => {
@@ -60,12 +56,12 @@ describe('test permission class', () => {
     expect(perm.location(positiveIP0)).toBeTruthy();
     expect(perm.location(positiveIP1)).toBeTruthy();
 
-    expect(perm.location(negativeIP, { subject: normalize('admin', 'subject') })).toBeTruthy();
-    expect(perm.location(positiveIP0, { subject: normalize('admin', 'subject') })).toBeTruthy();
-    expect(perm.location(positiveIP1, { subject: normalize('admin', 'subject') })).toBeTruthy();
+    expect(perm.location(negativeIP, { subject: { val: 'admin' } })).toBeTruthy();
+    expect(perm.location(positiveIP0, { subject: { val: 'admin' } })).toBeTruthy();
+    expect(perm.location(positiveIP1, { subject: { val: 'admin' } })).toBeTruthy();
   });
 
-  it('should field input data', () => {
+  it('should field input data', async () => {
     const article = {
       id: '5f4d1e2c-a7b2-40',
       owner: 'vhid.vz@gmail.com',
@@ -74,37 +70,35 @@ describe('test permission class', () => {
       tags: ['tag'],
     };
 
-    expect(perm.field(article)).toEqual({
+    expect(await perm.field(article)).toEqual({
       id: '5f4d1e2c-a7b2-40',
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
 
-    expect(perm.field(article, { subject: normalize('user', 'subject') })).toEqual({
+    expect(await perm.field(article, { subject: { val: 'user' } })).toEqual({
       id: '5f4d1e2c-a7b2-40',
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
 
-    expect(perm.field(article, { subject: normalize('user', 'subject'), action: normalize('update', 'action') })).toEqual({
+    expect(await perm.field(article, { subject: { val: 'user' }, action: { val: 'update' } })).toEqual({
       id: '5f4d1e2c-a7b2-40',
       owner: 'vhid.vz@gmail.com',
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
-    expect(
-      perm.field(article, { subject: normalize('user', 'subject'), action: normalize('update', 'action', { strict: false }) }),
-    ).toEqual({
+    expect(await perm.field(article, { subject: { val: 'user' }, action: { val: 'update', strict: false } })).toEqual({
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
   });
 
-  it('should filter output data', () => {
+  it('should filter output data', async () => {
     const article = {
       id: '5f4d1e2c-a7b2-40',
       owner: 'vhid.vz@gmail.com',
@@ -113,30 +107,28 @@ describe('test permission class', () => {
       tags: ['tag'],
     };
 
-    expect(perm.filter(article)).toEqual({
+    expect(await perm.filter(article)).toEqual({
       id: '5f4d1e2c-a7b2-40',
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
 
-    expect(perm.filter(article, { subject: normalize('user', 'subject') })).toEqual({
+    expect(await perm.filter(article, { subject: { val: 'user' } })).toEqual({
       id: '5f4d1e2c-a7b2-40',
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
 
-    expect(perm.filter(article, { subject: normalize('user', 'subject'), action: normalize('read', 'action') })).toEqual({
+    expect(await perm.filter(article, { subject: { val: 'user' }, action: { val: 'read' } })).toEqual({
       id: '5f4d1e2c-a7b2-40',
       owner: 'vhid.vz@gmail.com',
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
-    expect(
-      perm.filter(article, { subject: normalize('user', 'subject'), action: normalize('read', 'action', { strict: false }) }),
-    ).toEqual({
+    expect(await perm.filter(article, { subject: { val: 'user' }, action: { val: 'read', strict: false } })).toEqual({
       id: '5f4d1e2c-a7b2-40',
       title: 'sample title',
       content: 'sample content',

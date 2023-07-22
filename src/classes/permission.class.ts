@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ControlOptions, Policy, PolicyPattern, TimeOptions } from '../types';
+import { CacheKey, ControlOptions, Policy, PropType, TimeOptions } from '../types';
 import { Grant } from './grant.class';
-import { PropType } from '../utils';
 
 export class Permission<Sub = string, Act = string, Obj = string> {
   readonly granted: boolean;
@@ -16,32 +15,38 @@ export class Permission<Sub = string, Act = string, Obj = string> {
     return this.grant.policies;
   }
 
-  has(pattern: PolicyPattern): boolean {
-    return this.grant.has(pattern);
+  has<T = string, M = string, S = string>(cKey: CacheKey<T, M, S>): boolean {
+    return this.grant.has<T, M, S>(cKey);
   }
 
-  scopes<T = string>(type: PropType, pattern?: PolicyPattern): T[] {
-    return this.grant.scopes<T>(type, pattern);
+  scopes<Scope = string, T = string, M = string, S = string>(type: PropType, cKey?: CacheKey<T, M, S>): Scope[] {
+    return this.grant.scopes<Scope, T, M, S>(type, cKey);
   }
 
-  subjects(pattern?: PolicyPattern): Sub[] {
-    return this.grant.subjects(pattern);
+  subjects<T = string, M = string, S = string>(cKey?: CacheKey<T, M, S>): Sub[] {
+    return this.grant.subjects<T, M, S>(cKey);
   }
 
-  time(pattern?: PolicyPattern, options?: TimeOptions): boolean {
-    return this.grant.time(pattern, options);
+  time<T = string, M = string, S = string>(cKey?: CacheKey<T, M, S>, options?: TimeOptions): boolean {
+    return this.grant.time<T, M, S>(cKey, options);
   }
 
-  location(ip: string, pattern?: PolicyPattern): boolean {
-    return this.grant.location(ip, pattern);
+  location<T = string, M = string, S = string>(ip: string, cKey?: CacheKey<T, M, S>): boolean {
+    return this.grant.location<T, M, S>(ip, cKey);
   }
 
-  field<T>(data: any, pattern?: PolicyPattern | (<T>(data: T) => PolicyPattern), deep_copy = false): T {
-    return this.grant.field<T>(data, pattern, deep_copy);
+  async field<Data, T = string, M = string, S = string>(
+    data: any,
+    cKey?: CacheKey<T, M, S> | (<Data>(data: Data) => CacheKey<T, M, S> | Promise<CacheKey<T, M, S>>),
+  ): Promise<Data> {
+    return this.grant.field<Data, T, M, S>(data, cKey);
   }
 
-  filter<T>(data: any, pattern?: PolicyPattern | (<T>(data: T) => PolicyPattern), deep_copy = false): T {
-    return this.grant.filter<T>(data, pattern, deep_copy);
+  async filter<Data, T = string, M = string, S = string>(
+    data: any,
+    cKey?: CacheKey<T, M, S> | (<Data>(data: Data) => CacheKey<T, M, S> | Promise<CacheKey<T, M, S>>),
+  ): Promise<Data> {
+    return this.grant.filter<Data, T, M, S>(data, cKey);
   }
 
   static build<Sub = string, Act = string, Obj = string>(

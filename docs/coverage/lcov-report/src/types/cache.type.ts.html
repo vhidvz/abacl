@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/utils/validate.util.ts</title>
+    <title>Code coverage report for src/types/cache.type.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/utils</a> validate.util.ts</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/types</a> cache.type.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>29/29</span>
+                <span class='fraction'>26/26</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">91.66% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>22/24</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>5/5</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>29/29</span>
+                <span class='fraction'>26/26</span>
             </div>
         
             
@@ -89,66 +89,57 @@
 <a name='L24'></a><a href='#L24'>24</a>
 <a name='L25'></a><a href='#L25'>25</a>
 <a name='L26'></a><a href='#L26'>26</a>
-<a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a>
-<a name='L30'></a><a href='#L30'>30</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L27'></a><a href='#L27'>27</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">19x</span>
-<span class="cline-any cline-yes">19x</span>
-<span class="cline-any cline-yes">19x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">24x</span>
-<span class="cline-any cline-yes">24x</span>
-<span class="cline-any cline-yes">24x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">47x</span>
-<span class="cline-any cline-yes">47x</span>
-<span class="cline-any cline-yes">47x</span>
-<span class="cline-any cline-yes">47x</span>
-<span class="cline-any cline-yes">47x</span>
-<span class="cline-any cline-yes">47x</span>
-<span class="cline-any cline-yes">47x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/* eslint-disable @typescript-eslint/no-var-requires */
-import { isValidCron } from 'cron-validator';
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { ControlOptions } from './common.type';
+import { Policy } from './policy.type';
+import { OK } from '../consts';
 &nbsp;
-import { cidrRegex, ipRegex } from './regex.util';
-import { Policy } from '../types';
+export type PropType = 'subject' | 'action' | 'object';
+export type PropValue&lt;M = string, S = string&gt; = { main: M; scope?: S };
 &nbsp;
-export function isIP(str: string): boolean {
-  return ipRegex.test(str);
+export type CacheKey&lt;T = string, M = string, S = string&gt; = {
+  [K in PropType]?: { val: T | PropValue&lt;M, S&gt; } &amp; ControlOptions;
+};
+&nbsp;
+export interface CacheInterfaceOptions {
+  sep?: string;
+  prefix?: string;
 }
 &nbsp;
-export function isCIDR(str: string): boolean {
-  return cidrRegex.test(str);
-}
+export interface CacheInterface&lt;Sub = string, Act = string, Obj = string&gt; {
+  clear(): Promise&lt;typeof OK&gt;;
 &nbsp;
-export function IP_CIDR(str: string): boolean {
-  return isIP(str) || isCIDR(str);
-}
+  get&lt;T = string, M = string, S = string&gt;(cKey: CacheKey&lt;T, M, S&gt;): Promise&lt;Policy&lt;Sub, Act, Obj&gt;[]&gt;;
 &nbsp;
-export function isCRON(str: string) {
-  return !/^(\*\s)+\*$/.test(str) &amp;&amp; isValidCron(str, { seconds: true, alias: true });
-}
+  set(policy: Policy&lt;Sub, Act, Obj&gt;): Promise&lt;typeof OK&gt;;
+  del(policy: Policy&lt;Sub, Act, Obj&gt;): Promise&lt;typeof OK&gt;;
 &nbsp;
-export function validate&lt;Sub = string, Act = string, Obj = string&gt;(policy: Policy&lt;Sub, Act, Obj&gt;): void {
-  const { subject, action, object, location, time } = policy;
-&nbsp;
-  if (!subject || !action || !object) throw new Error('Policy is not valid');
-  if (location?.length &amp;&amp; !location<span class="branch-0 cbranch-no" title="branch not covered" >?.e</span>very((l) =&gt; IP_CIDR(l))) throw new Error('Policy location is not valid');
-  if (time?.length &amp;&amp; !time<span class="branch-0 cbranch-no" title="branch not covered" >?.e</span>very((t) =&gt; isCRON(t.cron_exp) &amp;&amp; t.duration &gt; 0)) throw new Error('Policy time is not valid');
+  has(policy: Policy&lt;Sub, Act, Obj&gt;, options?: ControlOptions): Promise&lt;boolean&gt;;
 }
 &nbsp;</pre></td></tr></table></pre>
 

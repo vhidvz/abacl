@@ -55,7 +55,7 @@ export function pattern<T = string, M = string, S = string>(
       const _scope =
         (parsed as any).scope ?? ((prop === 'subject' && NULL) || (prop === 'action' && ANY) || (prop === 'object' && ALL));
       return `${(parsed as any).main}${sep}${scope(_scope, { strict: cKey[prop]!.strict })}`;
-    } else return ignore;
+    } else return [ignore, ignore].join(sep);
   };
 
   if (!prefix) return RegExp(`^${[_pattern('subject'), _pattern('action'), _pattern('object')].join(sep)}$`);

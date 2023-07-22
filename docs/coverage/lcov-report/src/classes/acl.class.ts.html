@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>86/86</span>
+                <span class='fraction'>75/75</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">74.19% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>23/31</span>
+                <span class='fraction'>21/28</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>8/8</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>86/86</span>
+                <span class='fraction'>75/75</span>
             </div>
         
             
@@ -138,18 +138,7 @@
 <a name='L73'></a><a href='#L73'>73</a>
 <a name='L74'></a><a href='#L74'>74</a>
 <a name='L75'></a><a href='#L75'>75</a>
-<a name='L76'></a><a href='#L76'>76</a>
-<a name='L77'></a><a href='#L77'>77</a>
-<a name='L78'></a><a href='#L78'>78</a>
-<a name='L79'></a><a href='#L79'>79</a>
-<a name='L80'></a><a href='#L80'>80</a>
-<a name='L81'></a><a href='#L81'>81</a>
-<a name='L82'></a><a href='#L82'>82</a>
-<a name='L83'></a><a href='#L83'>83</a>
-<a name='L84'></a><a href='#L84'>84</a>
-<a name='L85'></a><a href='#L85'>85</a>
-<a name='L86'></a><a href='#L86'>86</a>
-<a name='L87'></a><a href='#L87'>87</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L76'></a><a href='#L76'>76</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -192,19 +181,12 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">10x</span>
@@ -218,15 +200,11 @@
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">100x</span>
-<span class="cline-any cline-yes">100x</span>
-<span class="cline-any cline-yes">100x</span>
-<span class="cline-any cline-yes">100x</span>
-<span class="cline-any cline-yes">100x</span>
-<span class="cline-any cline-yes">100x</span>
-<span class="cline-any cline-yes">100x</span>
-<span class="cline-any cline-yes">100x</span>
-<span class="cline-any cline-yes">100x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
@@ -235,86 +213,75 @@
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { filterByNotation, key, log, regex, validate } from '../utils';
-import { ALL, ANY, POLICY_NOTATION, SEP, STRICT } from '../consts';
-import { ControlOptions, Policy } from '../types';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { CacheInterface, ControlOptions, Policy } from '../types';
+import { ALL, ANY, OK, POLICY_NOTATION, STRICT } from '../consts';
+import { filterByNotation, log, validate } from '../utils';
 import { Permission } from './permission.class';
+import { MemoryDriver } from '../driver';
 import { Grant } from './grant.class';
 &nbsp;
 export interface CanOptions&lt;Sub = string, Act = string, Obj = string&gt; {
   strict?: boolean;
-  callable?: (perm: Permission&lt;Sub, Act, Obj&gt;) =&gt; boolean;
+  callable?: (perm: Permission&lt;Sub, Act, Obj&gt;) =&gt; boolean | Promise&lt;boolean&gt;;
+}
+&nbsp;
+export interface AccessControlOptions&lt;Sub = string, Act = string, Obj = string&gt; extends ControlOptions {
+  driver?: 'memory' | CacheInterface&lt;Sub, Act, Obj&gt; | (() =&gt; CacheInterface&lt;Sub, Act, Obj&gt;);
 }
 &nbsp;
 export class AccessControl&lt;Sub = string, Act = string, Obj = string&gt; {
+  protected driver: CacheInterface&lt;Sub, Act, Obj&gt;;
   protected readonly options: ControlOptions = {};
-  protected present: Record&lt;string, Policy&lt;Sub, Act, Obj&gt;&gt; = {};
 &nbsp;
-  constructor(policies: Policy&lt;Sub, Act, Obj&gt;[], options?: ControlOptions) {
-    const { sep, strict } = options<span class="branch-0 cbranch-no" title="branch not covered" > ?? {};</span>
+  constructor(options?: AccessControlOptions&lt;Sub, Act, Obj&gt;) {
+    const { strict, driver } = options<span class="branch-0 cbranch-no" title="branch not covered" > ?? {};</span>
 &nbsp;
-    this.options.sep = sep<span class="branch-0 cbranch-no" title="branch not covered" > ?? SEP;</span>
     this.options.strict = strict<span class="branch-0 cbranch-no" title="branch not covered" > ?? STRICT;</span>
 &nbsp;
-    if (policies.length) this.policies = policies;
+    if (!driver<span class="branch-0 cbranch-no" title="branch not covered" > || driver === 'memory')</span> {
+      this.driver = MemoryDriver.build&lt;Sub, Act, Obj&gt;();
+    }<span class="branch-0 cbranch-no" title="branch not covered" > else this.driver = typeof driver === 'function' ? driver() : driver;</span>
   }
 &nbsp;
-  set policies(policies: Policy&lt;Sub, Act, Obj&gt;[]) {
-    if (!policies.length) <span class="branch-0 cbranch-no" title="branch not covered" >this.present = {};</span>
-&nbsp;
-    for (const policy of policies) this.update(policy);
+  async policies(policies: Policy&lt;Sub, Act, Obj&gt;[]): Promise&lt;(typeof OK)[]&gt; {
+    return Promise.all(policies.map((policy) =&gt; this.update(policy)));
   }
 &nbsp;
-  get policies() {
-    return Object.values(this.present);
+  async exists(policy: Policy&lt;Sub, Act, Obj&gt;): Promise&lt;boolean&gt; {
+    return this.driver.has(policy);
   }
 &nbsp;
-  exists(policy: Policy&lt;Sub, Act, Obj&gt;): boolean {
-    return key(policy, this.options.sep) in this.present;
+  async delete(policy: Policy&lt;Sub, Act, Obj&gt;): Promise&lt;typeof OK&gt; {
+    return this.driver.del(policy);
   }
 &nbsp;
-  delete(policy: Policy&lt;Sub, Act, Obj&gt;): boolean {
-    return delete this.present[key(policy, this.options.sep)];
-  }
-&nbsp;
-  update(policy: Policy&lt;Sub, Act, Obj&gt;, deep_copy = true) {
+  async update(policy: Policy&lt;Sub, Act, Obj&gt;): Promise&lt;typeof OK&gt; {
     validate(policy);
 &nbsp;
-    policy = filterByNotation(policy, POLICY_NOTATION, deep_copy);
+    policy = filterByNotation(policy, POLICY_NOTATION, true);
 &nbsp;
-    const add = (key: string) =&gt; {
-      if (key in this.present) {
-        const { subject, action, object } = policy;
-        throw new Error(`policy with subject "${subject}", action "${action}" and object "${object}" already exists`);
-      } else this.present[key] = policy;
-    };
-&nbsp;
-    add(key(policy, this.options.sep));
+    return await this.driver.set(policy);
   }
 &nbsp;
-  can(subjects: Sub[], action: Act, object: Obj, options?: CanOptions&lt;Sub, Act, Obj&gt;): Permission&lt;Sub, Act, Obj&gt; {
-    const sep = this.options.sep<span class="branch-0 cbranch-no" title="branch not covered" > ?? SEP;</span>
+  async can(subjects: Sub[], action: Act, object: Obj, options?: CanOptions&lt;Sub, Act, Obj&gt;): Promise&lt;Permission&lt;Sub, Act, Obj&gt;&gt; {
     const strict = options?.strict ?? this.options.strict<span class="branch-0 cbranch-no" title="branch not covered" > ?? STRICT;</span>
 &nbsp;
     if (!subjects<span class="branch-0 cbranch-no" title="branch not covered" >?.l</span>ength) <span class="branch-0 cbranch-no" title="branch not covered" >throw new Error('No subjects given');</span>
 &nbsp;
     const start = Date.now();
 &nbsp;
-    let granted = false;
-    const grant = new Grant&lt;Sub, Act, Obj&gt;([], { sep, strict });
-    for (const key in this.present)
-      subjects.forEach((subject) =&gt; {
-        const pattern = regex({ subject, action, object }, { sep, strict });
+    const wrap = (prop: Sub | Act | Obj | string) =&gt; ({ strict, val: prop });
+    const keys = subjects.map((subject) =&gt; ({ subject: wrap(subject), action: wrap(action), object: wrap(object) }));
+    keys.push(...subjects.map((subject) =&gt; ({ subject: wrap(subject), action: wrap(ANY), object: wrap(object) })));
+    keys.push(...subjects.map((subject) =&gt; ({ subject: wrap(subject), action: wrap(action), object: wrap(ALL) })));
+    keys.push(...subjects.map((subject) =&gt; ({ subject: wrap(subject), action: wrap(ANY), object: wrap(ALL) })));
 &nbsp;
-        const pattern_all = regex({ subject, action: ANY, object: ALL }, { sep, strict });
-        const pattern_action = regex({ subject, action: ANY, object }, { sep, strict });
-        const pattern_object = regex({ subject, action, object: ALL }, { sep, strict });
+    const policies = (await Promise.all(keys.map((key) =&gt; this.driver.get(key)))).flat();
 &nbsp;
-        if ([pattern, pattern_all, pattern_action, pattern_object].some((p) =&gt; p.test(key)))
-          (granted = true) &amp;&amp; !grant.exists(this.present[key]) &amp;&amp; grant.update(this.present[key]);
-      });
+    let granted = !!policies.length;
+    const grant = new Grant&lt;Sub, Act, Obj&gt;(policies, { strict });
 &nbsp;
-    if (granted &amp;&amp; options?.callable) granted &amp;&amp;= !!options.callable(new Permission(granted, grant));
+    if (granted &amp;&amp; options?.callable) granted &amp;&amp;= !!(await options.callable(new Permission(granted, grant)));
 &nbsp;
     log('can').info(`can method execution time is ${Date.now() - start}ms`);
 &nbsp;
@@ -328,7 +295,7 @@ export class AccessControl&lt;Sub = string, Act = string, Obj = string&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2023-07-01T18:48:18.458Z
+                at 2023-07-22T12:05:36.425Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

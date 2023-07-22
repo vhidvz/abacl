@@ -59,6 +59,7 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
     const keys = subjects.map((subject) => ({ subject: wrap(subject), action: wrap(action), object: wrap(object) }));
     keys.push(...subjects.map((subject) => ({ subject: wrap(subject), action: wrap(ANY), object: wrap(object) })));
     keys.push(...subjects.map((subject) => ({ subject: wrap(subject), action: wrap(action), object: wrap(ALL) })));
+    keys.push(...subjects.map((subject) => ({ subject: wrap(subject), action: wrap(ANY), object: wrap(ALL) })));
 
     const policies = (await Promise.all(keys.map((key) => this.driver.get(key)))).flat();
 
