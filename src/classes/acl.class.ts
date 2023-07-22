@@ -1,5 +1,5 @@
-import { ALL, ANY, OK, POLICY_NOTATION, SEP, STRICT } from '../consts';
 import { CacheInterface, ControlOptions, Policy } from '../types';
+import { ALL, ANY, OK, POLICY_NOTATION, STRICT } from '../consts';
 import { filterByNotation, log, validate } from '../utils';
 import { Permission } from './permission.class';
 import { MemoryDriver } from '../driver';
@@ -55,16 +55,17 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
 
     const start = Date.now();
 
-    let granted = false;
+    const wrap = (prop: Sub | Act | Obj | string) => ({ strict, val: prop });
+    const keys = subjects.map((subject) => ({ subject: wrap(subject), action: wrap(action), object: wrap(object) }));
+    keys.push(...subjects.map((subject) => ({ subject: wrap(subject), action: wrap(ANY), object: wrap(object) })));
+    keys.push(...subjects.map((subject) => ({ subject: wrap(subject), action: wrap(action), object: wrap(ALL) })));
 
-    const policies = await Promise.all(
-      subjects.map((subject) =>
-        this.driver.get({ subject: { strict, val: subject }, action: { strict, val: action }, object: { val: object, strict } }),
-      ),
-    );
-    const grant = new Grant<Sub, Act, Obj>(policies.flat(), { strict });
+    const policies = (await Promise.all(keys.map((key) => this.driver.get(key)))).flat();
 
-    if (granted && options?.callable) granted &&= !!options.callable(new Permission(granted, grant));
+    let granted = !!policies.length;
+    const grant = new Grant<Sub, Act, Obj>(policies, { strict });
+
+    if (granted && options?.callable) granted &&= !!(await options.callable(new Permission(granted, grant)));
 
     log('can').info(`can method execution time is ${Date.now() - start}ms`);
 

@@ -38,7 +38,10 @@ export function key<Sub = string, Act = string, Obj = string>(
   else return [prefix, subject_key, action_key, object_key].join(sep);
 }
 
-export function pattern(key: CacheKey, options: MemoryDriverOptions = DefaultMemoryDriverOptions): Pattern {
+export function pattern<T = string, M = string, S = string>(
+  cKey: CacheKey<T, M, S>,
+  options: MemoryDriverOptions = DefaultMemoryDriverOptions,
+): Pattern {
   options.sep = options.sep ?? SEP;
   const { sep, prefix } = options;
 
@@ -47,11 +50,11 @@ export function pattern(key: CacheKey, options: MemoryDriverOptions = DefaultMem
   const scope = <T = string>(prop: T, options?: ControlOptions) => (options?.strict ?? STRICT ? prop : ignore);
 
   const _pattern = (prop?: PropType): string => {
-    if (prop && prop in key) {
-      const parsed = typeof key[prop]!.val === 'string' ? parse(key[prop]!.val) : key[prop]!.val;
+    if (prop && prop in cKey) {
+      const parsed = typeof cKey[prop]!.val === 'string' ? parse(cKey[prop]!.val) : cKey[prop]!.val;
       const _scope =
         (parsed as any).scope ?? ((prop === 'subject' && NULL) || (prop === 'action' && ANY) || (prop === 'object' && ALL));
-      return `${(parsed as any).main}${sep}${scope(_scope, { strict: key[prop]!.strict })}`;
+      return `${(parsed as any).main}${sep}${scope(_scope, { strict: cKey[prop]!.strict })}`;
     } else return ignore;
   };
 

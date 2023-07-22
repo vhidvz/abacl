@@ -1,5 +1,5 @@
 import { CacheInterface, CacheInterfaceOptions, CacheKey, Policy } from '../../types';
-import { key } from './memory.tools';
+import { key, pattern } from './memory.tools';
 import { OK } from '../../consts';
 
 export type MemoryDriverOptions = CacheInterfaceOptions;
@@ -14,8 +14,15 @@ export class MemoryDriver<Sub = string, Act = string, Obj = string> implements C
     return OK;
   }
 
-  get<M = string, S = string>(key: CacheKey<M, S>): Promise<Policy<Sub, Act, Obj>[]> {
-    throw new Error('Method not implemented.');
+  async get<T = string, M = string, S = string>(cKey: CacheKey<T, M, S>): Promise<Policy<Sub, Act, Obj>[]> {
+    const p = pattern(cKey, this.options);
+
+    const policies: Policy<Sub, Act, Obj>[] = [];
+    for (const index in Object.keys(this.present)) {
+      if (p.test(index)) policies.push(this.present[index]);
+    }
+
+    return policies;
   }
 
   async set(policy: Policy<Sub, Act, Obj>): Promise<typeof OK> {

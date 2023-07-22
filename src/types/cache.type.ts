@@ -5,8 +5,8 @@ import { OK } from '../consts';
 export type PropType = 'subject' | 'action' | 'object';
 export type PropValue<M = string, S = string> = { main: M; scope?: S };
 
-export type CacheKey<M = string, S = string> = {
-  [P in PropType]?: { val: any | PropValue<M, S> } & ControlOptions;
+export type CacheKey<T = string, M = string, S = string> = {
+  [K in PropType]?: { val: T | PropValue<M, S> } & ControlOptions;
 };
 
 export interface CacheInterfaceOptions {
@@ -17,7 +17,7 @@ export interface CacheInterfaceOptions {
 export interface CacheInterface<Sub = string, Act = string, Obj = string> {
   clear(): Promise<typeof OK>;
 
-  get<M = string, S = string>(key: CacheKey<M, S>): Promise<Policy<Sub, Act, Obj>[]>;
+  get<T = string, M = string, S = string>(cKey: CacheKey<T, M, S>): Promise<Policy<Sub, Act, Obj>[]>;
 
   set(policy: Policy<Sub, Act, Obj>): Promise<typeof OK>;
   del(policy: Policy<Sub, Act, Obj>): Promise<typeof OK>;
