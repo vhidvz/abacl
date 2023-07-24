@@ -18,7 +18,7 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
   protected driver: CacheInterface<Sub, Act, Obj>;
   protected readonly options: ControlOptions = {};
 
-  constructor(options?: AccessControlOptions<Sub, Act, Obj>) {
+  constructor(policies: Policy<Sub, Act, Obj>[], options?: AccessControlOptions<Sub, Act, Obj>) {
     const { strict, driver } = options ?? {};
 
     this.options.strict = strict ?? STRICT;
@@ -26,10 +26,12 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
     if (!driver || driver === 'memory') {
       this.driver = MemoryDriver.build<Sub, Act, Obj>();
     } else this.driver = typeof driver === 'function' ? driver() : driver;
+
+    if (policies.length) policies.map((policy) => this.update(policy));
   }
 
-  async policies(policies: Policy<Sub, Act, Obj>[]): Promise<(typeof OK)[]> {
-    return Promise.all(policies.map((policy) => this.update(policy)));
+  async clear(): Promise<typeof OK> {
+    return this.driver.clear();
   }
 
   async exists(policy: Policy<Sub, Act, Obj>): Promise<boolean> {

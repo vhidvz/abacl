@@ -5,9 +5,9 @@ describe('test acl class', () => {
   let acl: AccessControl;
 
   it('should define acl instance', async () => {
-    acl = new AccessControl();
+    acl = new AccessControl(policies);
 
-    expect(await acl.policies(policies)).toBeDefined();
+    expect(acl).toBeDefined();
   });
 
   it('should check exists policy in db', async () => {
