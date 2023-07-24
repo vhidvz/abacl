@@ -27,7 +27,7 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
       this.driver = MemoryDriver.build<Sub, Act, Obj>();
     } else this.driver = typeof driver === 'function' ? driver() : driver;
 
-    if (policies.length) policies.map((policy) => this.update(policy));
+    if (policies.length) policies.forEach((policy) => this.update(policy));
   }
 
   async clear(): Promise<typeof OK> {
