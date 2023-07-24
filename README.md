@@ -145,19 +145,19 @@ import AccessControl from 'abacl';
 // default strict value is true, you can change it on the `can` method
 
 const ac = new AccessControl(policies, { strict: false });
-const permission = ac.can([user.subject], 'read', 'article');
+const permission = await ac.can([user.subject], 'read', 'article');
 
 // change strict mode dynamically, Example:
-// const strictPermission = ac.can([user.subject], 'read', 'article', { strict: true });
+// const strictPermission = await ac.can([user.subject], 'read', 'article', { strict: true });
 
 /**
  *   it('should change strict mode dynamically', () => {
  *     const ac = new AccessControl(policies, { strict: true });
  *
- *     expect(ac.can([Role.User], 'read', 'article:published').granted).toBeFalsy();
+ *     expect(await ac.can([Role.User], 'read', 'article:published').granted).toBeFalsy();
  *
  *     // After changing strict mode
- *     expect(ac.can([Role.User], 'read', 'article:published', { strict: false }).granted).toBeTruthy();
+ *     expect(await ac.can([Role.User], 'read', 'article:published', { strict: false }).granted).toBeTruthy();
  *   });
  *
  * */
@@ -179,7 +179,7 @@ if (permission.granted) {
 
   // do something ...
 
-  const response = permission.filter(article);
+  const response = await permission.filter(article);
 }
 ```
 
@@ -191,14 +191,14 @@ import { AccessControl, Permission } from 'abacl';
 // default `strict` value is true
 const ac = new AccessControl(policies, { strict: true });
 
-const permission = ac.can([user.subject], 'create', 'article', {
+const permission = await ac.can([user.subject], 'create', 'article', {
   callable: (perm: Permission) => {
     return perm.location(user.ip) && perm.time();
   },
 });
 
 if (permission.granted) {
-  const inputData = permission.field(article);
+  const inputData = await permission.field(article);
 
   // the `inputData` has not `owner` property
   // do something and then return results to user
