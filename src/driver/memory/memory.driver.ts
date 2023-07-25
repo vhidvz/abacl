@@ -1,13 +1,16 @@
 import { CacheInterface, CacheInterfaceOptions, CacheKey, Policy } from '../../types';
 import { key, pattern } from './memory.tools';
-import { OK } from '../../consts';
+import { OK, SEP } from '../../consts';
 
 export type MemoryDriverOptions = CacheInterfaceOptions;
+export const DefaultMemoryDriverOptions: MemoryDriverOptions = { sep: SEP };
 
 export class MemoryDriver<Sub = string, Act = string, Obj = string> implements CacheInterface<Sub, Act, Obj> {
-  constructor(protected options: MemoryDriverOptions = {}) {}
-
   protected present: Record<string, Policy<Sub, Act, Obj>> = {};
+
+  constructor(protected options: MemoryDriverOptions = DefaultMemoryDriverOptions) {
+    options.sep = options.sep || SEP;
+  }
 
   async clear(): Promise<typeof OK> {
     this.present = {};

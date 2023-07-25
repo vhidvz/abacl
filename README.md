@@ -2,11 +2,8 @@
 
 [![npm](https://img.shields.io/npm/v/abacl)](https://www.npmjs.com/package/abacl)
 [![Coverage](https://raw.githubusercontent.com/vhidvz/abacl/master/coverage-badge.svg)](https://htmlpreview.github.io/?https://github.com/vhidvz/abacl/blob/master/docs/coverage/lcov-report/index.html)
-![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/vhidvz/abacl)
 ![npm](https://img.shields.io/npm/dm/abacl)
 [![GitHub](https://img.shields.io/github/license/vhidvz/abacl?style=flat)](https://vhidvz.github.io/abacl/)
-[![semantic-release: angular](https://img.shields.io/badge/semantic--release-nodejs-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![Gitter](https://badges.gitter.im/npm-abacl/community.svg)](https://gitter.im/npm-abacl/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![documentation](https://img.shields.io/badge/documentation-click_to_read-c27cf4)](https://vhidvz.github.io/abacl/)
 [![Build, Test and Publish](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml/badge.svg)](https://github.com/vhidvz/abacl/actions/workflows/npm-ci.yml)
@@ -19,16 +16,16 @@ The Attribute-Based Access-Control Library let you define five `can` access abil
 - Where can? the answer is `location` - With IP and CIDR you can find the location of users.
 - When can it? the answer is `time` - objects availabilities with cron expression and a duration.
 
-### ABAC vs RBAC?
+## ABAC vs RBAC?
 
 | **Question**       | **RBAC**                          | **ABAC**                                    |
 | ------------------ | --------------------------------- | ------------------------------------------- |
-| Who can access?    | :heavy_check_mark:                | :heavy_check_mark:                          |
+| Who can access?    | :white_check_mark:                | :heavy_check_mark: With more options        |
 | How can operate?   | :white_check_mark: CRUD           | :heavy_check_mark: With more options        |
 | What resource?     | :white_check_mark: Not Bad At All | :heavy_check_mark: More control on resource |
 | Where user can do? | :x:                               | :heavy_check_mark: Supported by IP and CIDR |
 | When user can do?  | :x:                               | :heavy_check_mark: Supported by CRON        |
-| Best structure?    | Monolithic Apps                   | PWA, Restfull, GraphQL                      |
+| Best structure?    | Monolithic Apps                   | PWA, Restful, GraphQL                       |
 | Suitable for?      | Small and medium projects         | Medium and large projects                   |
 
 ### What's Scope?
@@ -36,7 +33,7 @@ The Attribute-Based Access-Control Library let you define five `can` access abil
 - look at carefully; scan.
 - assess or investigate something.
 
-In this library, I have scoped `action`, `object` and `subject` which means you can have more control over these attributes.
+In this library, We scoped `action`, `object` and `subject` which means you can have more control over these attributes.
 
 ## Quick Start Guide
 
@@ -48,7 +45,7 @@ npm install --save abacl
 
 ### Usage and Dangling
 
-Define your user policies as a json array, so you can store it in your database:
+Define your user policies as a json array (so you can store it in your database):
 
 ```ts
 import { Policy } from 'abacl';
@@ -179,6 +176,7 @@ if (permission.granted) {
 
   // do something ...
 
+  // return filtered data based on the permission
   const response = await permission.filter(article);
 }
 ```
@@ -204,6 +202,10 @@ if (permission.granted) {
   // do something and then return results to user
 }
 ```
+
+## Related Project
+
+- [abacl-redis](https://www.npmjs.com/package/abacl-redis) redis storage driver.
 
 ## Thanks a lot
 

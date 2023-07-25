@@ -1,17 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CacheKey, ControlOptions, Pattern, Policy, PropType, PropValue } from '../../types';
+import { DefaultMemoryDriverOptions, MemoryDriverOptions } from './memory.driver';
 import { ALL, ANY, NULL, SEP, STRICT } from '../../consts';
-import { MemoryDriverOptions } from './memory.driver';
 
 export const memoryIgnore = (sep: string) => `[^${sep}][^${sep}]*`;
-export const DefaultMemoryDriverOptions: MemoryDriverOptions = { sep: SEP };
 
 export function parse<T = string, M = string, S = string>(
   prop: T,
   options: MemoryDriverOptions = DefaultMemoryDriverOptions,
 ): PropValue<M, S> {
-  options.sep = options.sep ?? SEP;
+  options.sep = options.sep || SEP;
   const { sep, prefix } = options;
 
   if (prefix) prop = String(prop).replace(prefix + sep, '') as T;
@@ -23,7 +22,7 @@ export function key<Sub = string, Act = string, Obj = string>(
   polity: Policy<Sub, Act, Obj>,
   options: MemoryDriverOptions = DefaultMemoryDriverOptions,
 ): string {
-  options.sep = options.sep ?? SEP;
+  options.sep = options.sep || SEP;
   const { sep, prefix } = options;
 
   const subject = parse(polity.subject, options);
@@ -42,7 +41,7 @@ export function pattern<T = string, M = string, S = string>(
   cKey: CacheKey<T, M, S>,
   options: MemoryDriverOptions = DefaultMemoryDriverOptions,
 ): Pattern {
-  options.sep = options.sep ?? SEP;
+  options.sep = options.sep || SEP;
   const { sep, prefix } = options;
 
   const ignore = memoryIgnore(sep);
