@@ -6,6 +6,15 @@ import { accessibility, accumulate, filterByNotation, isCIDR, validate } from '.
 import { POLICY_NOTATION, SEP, STRICT } from '../consts';
 import { key, parse, pattern } from '../driver';
 
+const addOptions = <T = string, M = string, S = string>(cKey: CacheKey<T, M, S>) => {
+  const patterns: Pattern[] = [];
+  const { subject, action, object } = cKey;
+  if (subject) patterns.push(pattern({ subject }));
+  if (action) patterns.push(pattern({ action }));
+  if (object) patterns.push(pattern({ object }));
+  return patterns;
+};
+
 export class Grant<Sub = string, Act = string, Obj = string> {
   protected readonly options: ControlOptions = {};
   protected present: Record<string, Policy<Sub, Act, Obj>> = {};
@@ -26,6 +35,14 @@ export class Grant<Sub = string, Act = string, Obj = string> {
 
   get policies() {
     return Object.values(this.present);
+  }
+
+  update(policy: Policy<Sub, Act, Obj>) {
+    validate(policy);
+
+    policy = filterByNotation(policy, POLICY_NOTATION, false);
+
+    this.present[key(policy)] = policy;
   }
 
   exists(policy: Policy<Sub, Act, Obj>): boolean {
@@ -57,7 +74,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
       };
 
       const scopes = new Set<Scope>([]);
-      add(scopes, this.addOptions(cKey));
+      add(scopes, addOptions(cKey));
 
       return [...scopes];
     }
@@ -71,7 +88,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
       };
 
       const subjects = new Set<Sub>([]);
-      add(subjects, this.addOptions(cKey));
+      add(subjects, addOptions(cKey));
 
       return [...subjects];
     }
@@ -92,7 +109,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
           .forEach((t) => t && (times[`${t.cron_exp}${SEP}${t.duration}`] = t));
       };
 
-      add(this.addOptions(cKey));
+      add(addOptions(cKey));
     }
 
     if (!Object.keys(times).length) return true;
@@ -114,7 +131,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
           .forEach((l) => l && locations.add(l));
       };
 
-      add(this.addOptions(cKey));
+      add(addOptions(cKey));
     }
 
     if (!locations.size) return true;
@@ -166,21 +183,6 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     }
   }
 
-  update(policy: Policy<Sub, Act, Obj>) {
-    validate(policy);
-
-    policy = filterByNotation(policy, POLICY_NOTATION, false);
-
-    const add = (key: string) => {
-      if (key in this.present) {
-        const { subject, action, object } = policy;
-        throw new Error(`policy with subject "${subject}", action "${action}" and object "${object}" already exists`);
-      } else this.present[key] = policy;
-    };
-
-    add(key(policy));
-  }
-
   protected async notations<T = string, M = string, S = string>(
     policies: Policy<Sub, Act, Obj>[],
     data: any,
@@ -198,18 +200,9 @@ export class Grant<Sub = string, Act = string, Obj = string> {
           .forEach((f) => f && notations.push(f));
       };
 
-      add(this.addOptions(typeof cKey === 'function' ? await cKey(data) : cKey));
+      add(addOptions(typeof cKey === 'function' ? await cKey(data) : cKey));
     }
 
     return notations;
-  }
-
-  private addOptions<T = string, M = string, S = string>(cKey: CacheKey<T, M, S>) {
-    const patterns: Pattern[] = [];
-    const { subject, action, object } = cKey;
-    if (subject) patterns.push(pattern({ subject }));
-    if (action) patterns.push(pattern({ action }));
-    if (object) patterns.push(pattern({ object }));
-    return patterns;
   }
 }

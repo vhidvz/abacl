@@ -25,12 +25,6 @@ describe('test grant class', () => {
     expect(grant.exists(policies[1])).toBeTruthy();
   });
 
-  it('should throw exception on duplication', () => {
-    expect(() => grant.update({ subject: Role.Admin, action: 'any', object: 'all' })).toThrowError(
-      Error('policy with subject "admin", action "any" and object "all" already exists'),
-    );
-  });
-
   it('should verify has pattern exists', () => {
     expect(grant.has({ subject: { val: Role.Admin } })).toBeTruthy();
     expect(grant.has({ subject: { val: { main: Role.Admin } } })).toBeTruthy();
