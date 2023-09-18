@@ -1,6 +1,6 @@
 import { CacheInterface, ControlOptions, Policy } from '../types';
 import { ALL, ANY, OK, POLICY_NOTATION, STRICT } from '../consts';
-import { filterByNotation, log, validate } from '../utils';
+import { filterByNotation, validate } from '../utils';
 import { Permission } from './permission.class';
 import { MemoryDriver } from '../driver';
 import { Grant } from './grant.class';
@@ -55,8 +55,6 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
 
     if (!subjects?.length) throw new Error('No subjects given');
 
-    const start = Date.now();
-
     const wrap = (prop: Sub | Act | Obj | string) => ({ strict, val: prop });
     const keys = subjects.map((subject) => ({ subject: wrap(subject), action: wrap(action), object: wrap(object) }));
     keys.push(...subjects.map((subject) => ({ subject: wrap(subject), action: wrap(ANY), object: wrap(object) })));
@@ -69,8 +67,6 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
     const grant = new Grant<Sub, Act, Obj>(policies, { strict });
 
     if (granted && options?.callable) granted &&= !!(await options.callable(new Permission(granted, grant)));
-
-    log('can').info(`can method execution time is ${Date.now() - start}ms`);
 
     return new Permission<Sub, Act, Obj>(granted, grant);
   }
