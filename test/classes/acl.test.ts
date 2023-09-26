@@ -67,9 +67,9 @@ describe('test acl class', () => {
   });
 
   it('should return permission for scopes any/all', async () => {
-    const permission = await acl.can([Role.Manager], 'read:any', 'article:all');
-    const permission = await acl.can([Role.Manager], 'read:any', 'article:all');
+    const permission1 = await acl.can([Role.Manager], 'read', 'article:all', { strict: 'a' });
+    const permission2 = await acl.can([Role.Manager], 'read:any', 'article', { strict: 'a' });
 
-    expect(permission).toBeDefined();
+    expect(permission1.policies).toStrictEqual(permission2.policies);
   });
 });

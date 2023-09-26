@@ -45,10 +45,10 @@ describe('test grant class', () => {
   it('should return grant subjects', () => {
     expect(grant.subjects()).toEqual(['admin', 'guest', 'manager', 'user']);
 
-    expect(grant.subjects({ action: { val: 'read' } })).toEqual(['guest']);
+    expect(grant.subjects({ action: { val: 'read' } })).toEqual(['manager', 'guest']);
 
-    expect(grant.subjects({ action: { val: 'read', strict: true } })).toEqual(['guest']);
-    expect(grant.subjects({ action: { val: 'read', strict: false } })).toEqual(['user', 'guest']);
+    expect(grant.subjects({ action: { val: 'read', strict: true } })).toEqual(['manager', 'guest']);
+    expect(grant.subjects({ action: { val: 'read', strict: false } })).toEqual(['manager', 'user', 'guest']);
   });
 
   it('should check time accessibility', () => {

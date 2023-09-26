@@ -46,22 +46,18 @@ export function pattern<T = string, M = string, S = string>(
 
   const ignore = memoryIgnore(sep);
 
-  const scope = <T = string>(prop: T, options?: ControlOptions) => (options?.strict ?? STRICT ? prop : ignore);
+  const strict = <T = string>(prop: T, options?: ControlOptions) => (options?.strict ?? STRICT ? prop : ignore);
 
-  const _pattern = (prop?: PropType): string => {
+  const regex = (prop?: PropType): string => {
     if (prop && prop in cKey) {
-      const parsed = typeof cKey[prop]!.val === 'string' ? parse(cKey[prop]!.val) : (cKey[prop]!.val as PropValue<M, S>);
+      const { main, scope } = typeof cKey[prop]!.val === 'string' ? parse(cKey[prop]!.val) : (cKey[prop]!.val as PropValue<M, S>);
 
-      if (parsed.scope === 'any') parsed.scope = ignore;
-      if (parsed.scope === 'all') parsed.scope = ignore;
+      const val = scope ?? ((prop === 'subject' && NULL) || (prop === 'action' && ANY) || (prop === 'object' && ALL));
 
-      const _scope =
-        (parsed as any).scope ?? ((prop === 'subject' && NULL) || (prop === 'action' && ANY) || (prop === 'object' && ALL));
-
-      return `${(parsed as any).main}${sep}${scope(_scope, { strict: cKey[prop]!.strict })}`;
+      return `${main}${sep}${strict(val, { strict: cKey[prop]!.strict })}`;
     } else return [ignore, ignore].join(sep);
   };
 
-  if (!prefix) return RegExp(`^${[_pattern('subject'), _pattern('action'), _pattern('object')].join(sep)}$`);
-  else return RegExp(`^${[prefix, _pattern('subject'), _pattern('action'), _pattern('object')].join(sep)}$`);
+  if (!prefix) return RegExp(`^${[regex('subject'), regex('action'), regex('object')].join(sep)}$`);
+  else return RegExp(`^${[prefix, regex('subject'), regex('action'), regex('object')].join(sep)}$`);
 }

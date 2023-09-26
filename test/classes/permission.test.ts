@@ -30,10 +30,10 @@ describe('test permission class', () => {
   it('should return perm subjects', () => {
     expect(perm.subjects()).toEqual(['admin', 'guest', 'manager', 'user']);
 
-    expect(perm.subjects({ action: { val: 'read' } })).toEqual(['guest']);
+    expect(perm.subjects({ action: { val: 'read' } })).toEqual(['guest', 'manager']);
 
-    expect(perm.subjects({ action: { val: 'read', strict: true } })).toEqual(['guest']);
-    expect(perm.subjects({ action: { val: 'read', strict: false } })).toEqual(['guest', 'user']);
+    expect(perm.subjects({ action: { val: 'read', strict: true } })).toEqual(['guest', 'manager']);
+    expect(perm.subjects({ action: { val: 'read', strict: false } })).toEqual(['guest', 'manager', 'user']);
   });
 
   it('should check time accessibility', () => {
