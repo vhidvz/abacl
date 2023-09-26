@@ -35,6 +35,8 @@ The Attribute-Based Access-Control Library let you define five `can` access abil
 
 In this library, We scoped `action`, `object` and `subject` which means you can have more control over these attributes.
 
+**Note:** if you want to have more control over the scoped attributes send at most three character of the first `subject`, `action`, or `object` for example `so` or `sub|obj` it means `subject` and `object` are in `strict` mode.
+
 ## Quick Start Guide
 
 ### installation
@@ -134,8 +136,6 @@ const article = {
 ```
 
 Create a new access control object, then get the permission grants:
-
-> _Note_: you can have more control over restricted properties by sending the first character of the `subject`, `action`, and `object` as string like `so` it means `subject` and `object` are in strict mode and `action` not.
 
 ```ts
 import AccessControl from 'abacl';
