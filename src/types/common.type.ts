@@ -1,5 +1,5 @@
 export interface ControlOptions {
-  strict?: boolean;
+  strict?: boolean | string;
 }
 
 export interface TimeOptions {

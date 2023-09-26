@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/types/policy.type.ts</title>
+    <title>Code coverage report for src/utils/strict.util.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/types</a> policy.type.ts</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/utils</a> strict.util.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>18/18</span>
+                <span class='fraction'>22/22</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>18/18</span>
+                <span class='fraction'>22/22</span>
             </div>
         
             
@@ -81,7 +81,11 @@
 <a name='L16'></a><a href='#L16'>16</a>
 <a name='L17'></a><a href='#L17'>17</a>
 <a name='L18'></a><a href='#L18'>18</a>
-<a name='L19'></a><a href='#L19'>19</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -99,24 +103,32 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { ANY, ALL } from '../consts';
+<span class="cline-any cline-yes">150x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">150x</span>
+<span class="cline-any cline-yes">150x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { PropType } from '../types';
+import { STRICT } from '../consts';
 &nbsp;
-export interface Time {
-  cron_exp: string;
-  duration: number;
-}
+/**
+ * The function `isStrict` checks if a given property type matches a strict mode, returning a boolean
+ * value.
+ *
+ * @param {PropType} prop - The `prop` parameter is of type `PropType`. It represents a property that
+ * is being checked for strictness.
+ *
+ * @param {boolean | string} strict - The `strict` parameter is a boolean or string that determines
+ * whether the code should be executed in strict mode. If it is a boolean, the function will return the
+ * value of `strict`. If it is a string, the function will check if the first character of the `prop`
+ * parameter is included
+ *
+ * @returns a boolean value.
+ */
+export const isStrict = (prop: PropType, strict: boolean | string = STRICT) =&gt; {
+  if (typeof strict === 'boolean') return strict;
 &nbsp;
-export interface Policy&lt;Sub = string, Act = string, Obj = string&gt; {
-  subject: Sub;
-&nbsp;
-  action: Act | typeof ANY;
-  object: Obj | typeof ALL;
-&nbsp;
-  time?: Time[];
-  field?: string[];
-  filter?: string[];
-  location?: string[];
-}
+  return (strict ?? 'sao').toLowerCase().includes(prop[0]);
+};
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->

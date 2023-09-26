@@ -1,12 +1,12 @@
 import { CacheInterface, ControlOptions, Policy } from '../types';
 import { ALL, ANY, OK, POLICY_NOTATION, STRICT } from '../consts';
-import { filterByNotation, validate } from '../utils';
+import { filterByNotation, isStrict, validate } from '../utils';
 import { Permission } from './permission.class';
 import { MemoryDriver } from '../driver';
 import { Grant } from './grant.class';
 
 export interface CanOptions<Sub = string, Act = string, Obj = string> {
-  strict?: boolean;
+  strict?: boolean | string;
   callable?: (perm: Permission<Sub, Act, Obj>) => boolean | Promise<boolean>;
 }
 
@@ -55,11 +55,14 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
 
     if (!subjects?.length) throw new Error('No subjects given');
 
-    const wrap = (prop: Sub | Act | Obj | string) => ({ strict, val: prop });
-    const keys = subjects.map((subject) => ({ subject: wrap(subject), action: wrap(action), object: wrap(object) }));
-    keys.push(...subjects.map((subject) => ({ subject: wrap(subject), action: wrap(ANY), object: wrap(object) })));
-    keys.push(...subjects.map((subject) => ({ subject: wrap(subject), action: wrap(action), object: wrap(ALL) })));
-    keys.push(...subjects.map((subject) => ({ subject: wrap(subject), action: wrap(ANY), object: wrap(ALL) })));
+    const wrapSub = (prop: Sub | Act | Obj | string) => ({ strict: isStrict('subject', strict), val: prop });
+    const wrapAct = (prop: Sub | Act | Obj | string) => ({ strict: isStrict('action', strict), val: prop });
+    const wrapObj = (prop: Sub | Act | Obj | string) => ({ strict: isStrict('object', strict), val: prop });
+
+    const keys = subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(action), object: wrapObj(object) }));
+    keys.push(...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(ANY), object: wrapObj(object) })));
+    keys.push(...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(action), object: wrapObj(ALL) })));
+    keys.push(...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(ANY), object: wrapObj(ALL) })));
 
     const policies = (await Promise.all(keys.map((key) => this.driver.get(key)))).flat();
 

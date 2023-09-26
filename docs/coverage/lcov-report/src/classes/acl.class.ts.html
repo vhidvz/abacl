@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.26% </span>
+                <span class="strong">97.36% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>71/73</span>
+                <span class='fraction'>74/76</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">68.96% </span>
+                <span class="strong">70.96% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>20/29</span>
+                <span class='fraction'>22/31</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">88.88% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>6/7</span>
+                <span class='fraction'>8/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.26% </span>
+                <span class="strong">97.36% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>71/73</span>
+                <span class='fraction'>74/76</span>
             </div>
         
             
@@ -136,7 +136,10 @@
 <a name='L71'></a><a href='#L71'>71</a>
 <a name='L72'></a><a href='#L72'>72</a>
 <a name='L73'></a><a href='#L73'>73</a>
-<a name='L74'></a><a href='#L74'>74</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -189,6 +192,9 @@
 <span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
@@ -211,13 +217,13 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { CacheInterface, ControlOptions, Policy } from '../types';
 import { ALL, ANY, OK, POLICY_NOTATION, STRICT } from '../consts';
-import { filterByNotation, validate } from '../utils';
+import { filterByNotation, isStrict, validate } from '../utils';
 import { Permission } from './permission.class';
 import { MemoryDriver } from '../driver';
 import { Grant } from './grant.class';
 &nbsp;
 export interface CanOptions&lt;Sub = string, Act = string, Obj = string&gt; {
-  strict?: boolean;
+  strict?: boolean | string;
   callable?: (perm: Permission&lt;Sub, Act, Obj&gt;) =&gt; boolean | Promise&lt;boolean&gt;;
 }
 &nbsp;
@@ -266,11 +272,14 @@ export class AccessControl&lt;Sub = string, Act = string, Obj = string&gt; {
 &nbsp;
     if (!subjects<span class="branch-0 cbranch-no" title="branch not covered" >?.l</span>ength) <span class="branch-0 cbranch-no" title="branch not covered" >throw new Error('No subjects given');</span>
 &nbsp;
-    const wrap = (prop: Sub | Act | Obj | string) =&gt; ({ strict, val: prop });
-    const keys = subjects.map((subject) =&gt; ({ subject: wrap(subject), action: wrap(action), object: wrap(object) }));
-    keys.push(...subjects.map((subject) =&gt; ({ subject: wrap(subject), action: wrap(ANY), object: wrap(object) })));
-    keys.push(...subjects.map((subject) =&gt; ({ subject: wrap(subject), action: wrap(action), object: wrap(ALL) })));
-    keys.push(...subjects.map((subject) =&gt; ({ subject: wrap(subject), action: wrap(ANY), object: wrap(ALL) })));
+    const wrapSub = (prop: Sub | Act | Obj | string) =&gt; ({ strict: isStrict('subject', strict), val: prop });
+    const wrapAct = (prop: Sub | Act | Obj | string) =&gt; ({ strict: isStrict('action', strict), val: prop });
+    const wrapObj = (prop: Sub | Act | Obj | string) =&gt; ({ strict: isStrict('object', strict), val: prop });
+&nbsp;
+    const keys = subjects.map((subject) =&gt; ({ subject: wrapSub(subject), action: wrapAct(action), object: wrapObj(object) }));
+    keys.push(...subjects.map((subject) =&gt; ({ subject: wrapSub(subject), action: wrapAct(ANY), object: wrapObj(object) })));
+    keys.push(...subjects.map((subject) =&gt; ({ subject: wrapSub(subject), action: wrapAct(action), object: wrapObj(ALL) })));
+    keys.push(...subjects.map((subject) =&gt; ({ subject: wrapSub(subject), action: wrapAct(ANY), object: wrapObj(ALL) })));
 &nbsp;
     const policies = (await Promise.all(keys.map((key) =&gt; this.driver.get(key)))).flat();
 &nbsp;
@@ -289,7 +298,7 @@ export class AccessControl&lt;Sub = string, Act = string, Obj = string&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2023-09-26T10:25:24.552Z
+                at 2023-09-26T11:53:53.980Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
