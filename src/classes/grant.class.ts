@@ -19,16 +19,16 @@ export class Grant<Sub = string, Act = string, Obj = string> {
   protected readonly options: ControlOptions = {};
   protected present: Record<string, Policy<Sub, Act, Obj>> = {};
 
-  constructor(policies: Policy<Sub, Act, Obj>[], options?: ControlOptions) {
+  constructor(policies?: Policy<Sub, Act, Obj>[], options?: ControlOptions) {
     const { strict } = options ?? {};
 
     this.options.strict = strict ?? STRICT;
 
-    if (policies.length) this.policies = policies;
+    if (policies?.length) this.policies = policies;
   }
 
   set policies(policies: Policy<Sub, Act, Obj>[]) {
-    if (!policies.length) this.present = {};
+    if (!policies?.length) this.present = {};
 
     for (const policy of policies) this.update(policy);
   }

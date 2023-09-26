@@ -18,7 +18,7 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
   protected driver: CacheInterface<Sub, Act, Obj>;
   protected readonly options: ControlOptions = {};
 
-  constructor(policies: Policy<Sub, Act, Obj>[], options?: AccessControlOptions<Sub, Act, Obj>) {
+  constructor(policies?: Policy<Sub, Act, Obj>[], options?: AccessControlOptions<Sub, Act, Obj>) {
     const { strict, driver } = options ?? {};
 
     this.options.strict = strict ?? STRICT;
@@ -27,7 +27,7 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
       this.driver = MemoryDriver.build<Sub, Act, Obj>();
     } else this.driver = typeof driver === 'function' ? driver() : driver;
 
-    if (policies.length) policies.forEach((policy) => this.update(policy));
+    if (policies?.length) policies.forEach((policy) => this.update(policy));
   }
 
   async clear(): Promise<typeof OK> {
@@ -63,7 +63,7 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
 
     const policies = (await Promise.all(keys.map((key) => this.driver.get(key)))).flat();
 
-    let granted = !!policies.length;
+    let granted = !!policies?.length;
     const grant = new Grant<Sub, Act, Obj>(policies, { strict });
 
     if (granted && options?.callable) granted &&= !!(await options.callable(new Permission(granted, grant)));
