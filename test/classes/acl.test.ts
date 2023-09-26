@@ -65,4 +65,11 @@ describe('test acl class', () => {
       tags: ['tag'],
     });
   });
+
+  it('should return permission for scopes any/all', async () => {
+    const permission = await acl.can([Role.Manager], 'read:any', 'article:all');
+    const permission = await acl.can([Role.Manager], 'read:any', 'article:all');
+
+    expect(permission).toBeDefined();
+  });
 });

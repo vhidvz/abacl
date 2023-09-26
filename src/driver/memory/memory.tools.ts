@@ -50,9 +50,14 @@ export function pattern<T = string, M = string, S = string>(
 
   const _pattern = (prop?: PropType): string => {
     if (prop && prop in cKey) {
-      const parsed = typeof cKey[prop]!.val === 'string' ? parse(cKey[prop]!.val) : cKey[prop]!.val;
+      const parsed = typeof cKey[prop]!.val === 'string' ? parse(cKey[prop]!.val) : (cKey[prop]!.val as PropValue<M, S>);
+
+      if (parsed.scope === 'any') parsed.scope = ignore;
+      if (parsed.scope === 'all') parsed.scope = ignore;
+
       const _scope =
         (parsed as any).scope ?? ((prop === 'subject' && NULL) || (prop === 'action' && ANY) || (prop === 'object' && ALL));
+
       return `${(parsed as any).main}${sep}${scope(_scope, { strict: cKey[prop]!.strict })}`;
     } else return [ignore, ignore].join(sep);
   };
