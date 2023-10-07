@@ -6,12 +6,14 @@ import { accessibility, accumulate, filterByNotation, isCIDR, validate } from '.
 import { POLICY_NOTATION, SEP, STRICT } from '../consts';
 import { key, parse, pattern } from '../driver';
 
-const addOptions = <T = string, M = string, S = string>(cKey: CacheKey<T, M, S>) => {
+const addOptions = <Sub = string, Act = string, Obj = string>(cKey: CacheKey<Sub, Act, Obj>) => {
   const patterns: Pattern[] = [];
   const { subject, action, object } = cKey;
+
   if (subject) patterns.push(pattern({ subject }));
   if (action) patterns.push(pattern({ action }));
   if (object) patterns.push(pattern({ object }));
+
   return patterns;
 };
 
@@ -53,7 +55,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     return delete this.present[key(policy)];
   }
 
-  has<T = string, M = string, S = string>(cKey: CacheKey<T, M, S>): boolean {
+  has(cKey: CacheKey<Sub, Act, Obj>): boolean {
     if (!Object.keys(cKey).length) throw new Error('Cache key is required');
 
     const keys = Object.keys(this.present);
@@ -62,7 +64,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     return test(pattern(cKey));
   }
 
-  scopes<Scope = string, T = string, M = string, S = string>(type: PropType, cKey?: CacheKey<T, M, S>): Scope[] {
+  scopes<Scope = string>(type: PropType, cKey?: CacheKey<Sub, Act, Obj>): Scope[] {
     if (!cKey || !Object.keys(cKey).length) {
       return [...new Set<Scope>(this.policies.map((p) => parse(p[type]).scope as Scope).filter((s) => !!s))];
     } else {
@@ -80,7 +82,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     }
   }
 
-  subjects<T = string, M = string, S = string>(cKey?: CacheKey<T, M, S>): Sub[] {
+  subjects(cKey?: CacheKey<Sub, Act, Obj>): Sub[] {
     if (!cKey || !Object.keys(cKey).length) return [...new Set<Sub>(this.policies.map((p) => p.subject))];
     else {
       const add = (set: Set<Sub>, patterns: Pattern[]) => {
@@ -94,7 +96,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     }
   }
 
-  time<T = string, M = string, S = string>(cKey?: CacheKey<T, M, S>, options?: TimeOptions): boolean {
+  time(cKey?: CacheKey<Sub, Act, Obj>, options?: TimeOptions): boolean {
     const times: Record<string, Time> = {};
 
     if (!cKey || !Object.keys(cKey).length) {
@@ -116,7 +118,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     else return Object.values(times).some((t) => accessibility(t, options));
   }
 
-  location<T = string, M = string, S = string>(ip: string, cKey?: CacheKey<T, M, S>): boolean {
+  location(ip: string, cKey?: CacheKey<Sub, Act, Obj>): boolean {
     const locations = new Set<string>([]);
 
     if (!cKey || !Object.keys(cKey).length) {
@@ -145,9 +147,9 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     }
   }
 
-  async field<Data, T = string, M = string, S = string>(
+  async field<Data>(
     data: any,
-    cKey?: CacheKey<T, M, S> | (<Data>(data: Data) => CacheKey<T, M, S> | Promise<CacheKey<T, M, S>>),
+    cKey?: CacheKey<Sub, Act, Obj> | (<Data>(data: Data) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
   ): Promise<Data> {
     const notation = accumulate(...(await this.notations(this.policies, data, 'field', cKey)));
 
@@ -164,9 +166,9 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     }
   }
 
-  async filter<Data, T = string, M = string, S = string>(
+  async filter<Data>(
     data: any,
-    cKey?: CacheKey<T, M, S> | (<Data>(data: Data) => CacheKey<T, M, S> | Promise<CacheKey<T, M, S>>),
+    cKey?: CacheKey<Sub, Act, Obj> | (<Data>(data: Data) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
   ): Promise<Data> {
     const notation = accumulate(...(await this.notations(this.policies, data, 'filter', cKey)));
 
@@ -183,11 +185,11 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     }
   }
 
-  protected async notations<T = string, M = string, S = string>(
+  protected async notations(
     policies: Policy<Sub, Act, Obj>[],
     data: any,
     type: 'filter' | 'field',
-    cKey?: CacheKey<T, M, S> | (<Data>(data: Data) => CacheKey<T, M, S> | Promise<CacheKey<T, M, S>>),
+    cKey?: CacheKey<Sub, Act, Obj> | (<Data>(data: Data) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
   ) {
     const notations: string[][] = [];
     if (typeof cKey !== 'function' && (!cKey || !Object.keys(cKey).length)) {

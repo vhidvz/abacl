@@ -15,38 +15,38 @@ export class Permission<Sub = string, Act = string, Obj = string> {
     return this.grant.policies;
   }
 
-  has<T = string, M = string, S = string>(cKey: CacheKey<T, M, S>): boolean {
-    return this.grant.has<T, M, S>(cKey);
+  has(cKey: CacheKey<Sub, Act, Obj>): boolean {
+    return this.grant.has(cKey);
   }
 
-  scopes<Scope = string, T = string, M = string, S = string>(type: PropType, cKey?: CacheKey<T, M, S>): Scope[] {
-    return this.grant.scopes<Scope, T, M, S>(type, cKey);
+  scopes<Scope = string>(type: PropType, cKey?: CacheKey<Sub, Act, Obj>): Scope[] {
+    return this.grant.scopes(type, cKey);
   }
 
-  subjects<T = string, M = string, S = string>(cKey?: CacheKey<T, M, S>): Sub[] {
-    return this.grant.subjects<T, M, S>(cKey);
+  subjects(cKey?: CacheKey<Sub, Act, Obj>): Sub[] {
+    return this.grant.subjects(cKey);
   }
 
-  time<T = string, M = string, S = string>(cKey?: CacheKey<T, M, S>, options?: TimeOptions): boolean {
-    return this.grant.time<T, M, S>(cKey, options);
+  time(cKey?: CacheKey<Sub, Act, Obj>, options?: TimeOptions): boolean {
+    return this.grant.time(cKey, options);
   }
 
-  location<T = string, M = string, S = string>(ip: string, cKey?: CacheKey<T, M, S>): boolean {
-    return this.grant.location<T, M, S>(ip, cKey);
+  location(ip: string, cKey?: CacheKey<Sub, Act, Obj>): boolean {
+    return this.grant.location(ip, cKey);
   }
 
-  async field<Data, T = string, M = string, S = string>(
+  async field<Data>(
     data: any,
-    cKey?: CacheKey<T, M, S> | (<Data>(data: Data) => CacheKey<T, M, S> | Promise<CacheKey<T, M, S>>),
+    cKey?: CacheKey<Sub, Act, Obj> | (<Data>(data: Data) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
   ): Promise<Data> {
-    return this.grant.field<Data, T, M, S>(data, cKey);
+    return this.grant.field<Data>(data, cKey);
   }
 
-  async filter<Data, T = string, M = string, S = string>(
+  async filter<Data>(
     data: any,
-    cKey?: CacheKey<T, M, S> | (<Data>(data: Data) => CacheKey<T, M, S> | Promise<CacheKey<T, M, S>>),
+    cKey?: CacheKey<Sub, Act, Obj> | (<Data>(data: Data) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
   ): Promise<Data> {
-    return this.grant.filter<Data, T, M, S>(data, cKey);
+    return this.grant.filter<Data>(data, cKey);
   }
 
   static build<Sub = string, Act = string, Obj = string>(

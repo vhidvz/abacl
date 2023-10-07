@@ -55,14 +55,16 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
 
     if (!subjects?.length) throw new Error('No subjects given');
 
-    const wrapSub = (prop: Sub | Act | Obj | string) => ({ strict: isStrict('subject', strict), val: prop });
-    const wrapAct = (prop: Sub | Act | Obj | string) => ({ strict: isStrict('action', strict), val: prop });
-    const wrapObj = (prop: Sub | Act | Obj | string) => ({ strict: isStrict('object', strict), val: prop });
+    const wrapSub = (prop: Sub) => ({ strict: isStrict('subject', strict), val: prop });
+    const wrapAct = (prop: Act) => ({ strict: isStrict('action', strict), val: prop });
+    const wrapObj = (prop: Obj) => ({ strict: isStrict('object', strict), val: prop });
 
     const keys = subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(action), object: wrapObj(object) }));
-    keys.push(...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(ANY), object: wrapObj(object) })));
-    keys.push(...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(action), object: wrapObj(ALL) })));
-    keys.push(...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(ANY), object: wrapObj(ALL) })));
+    keys.push(...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(ANY as Act), object: wrapObj(object) })));
+    keys.push(...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(action), object: wrapObj(ALL as Obj) })));
+    keys.push(
+      ...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(ANY as Act), object: wrapObj(ALL as Obj) })),
+    );
 
     const policies = (await Promise.all(keys.map((key) => this.driver.get(key)))).flat();
 

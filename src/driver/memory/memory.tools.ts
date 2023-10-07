@@ -3,18 +3,20 @@
 import { CacheKey, ControlOptions, Pattern, Policy, PropType, PropValue } from '../../types';
 import { DefaultMemoryDriverOptions, MemoryDriverOptions } from './memory.driver';
 import { ALL, ANY, NULL, SEP, STRICT } from '../../consts';
+import { isStrict } from 'utils';
 
 export const memoryIgnore = (sep: string) => `[^${sep}][^${sep}]*`;
 
-export function parse<T = string, M = string, S = string>(
-  prop: T,
+export function parse<Prop = string, Main = string, Scope = string>(
+  prop: Prop,
   options: MemoryDriverOptions = DefaultMemoryDriverOptions,
-): PropValue<M, S> {
+): PropValue<Main, Scope> {
   options.sep = options.sep || SEP;
   const { sep, prefix } = options;
 
-  if (prefix) prop = String(prop).replace(prefix + sep, '') as T;
-  const [main, scope] = String(prop).split(sep) as [M, S];
+  if (prefix) prop = String(prop).replace(prefix + sep, '') as Prop;
+
+  const [main, scope] = String(prop).split(sep) as [Main, Scope];
   return { main, scope };
 }
 
@@ -25,9 +27,9 @@ export function key<Sub = string, Act = string, Obj = string>(
   options.sep = options.sep || SEP;
   const { sep, prefix } = options;
 
-  const subject = parse(polity.subject, options);
-  const action = parse(polity.action, options);
-  const object = parse(polity.object, options);
+  const subject = parse<Sub>(polity.subject, options);
+  const action = parse<Act>(polity.action, options);
+  const object = parse<Obj>(polity.object, options);
 
   const subject_key = `${subject.main}${sep}${subject.scope ?? NULL}`;
   const action_key = `${action.main}${sep}${action.scope ?? ANY}`;
@@ -37,8 +39,8 @@ export function key<Sub = string, Act = string, Obj = string>(
   else return [prefix, subject_key, action_key, object_key].join(sep);
 }
 
-export function pattern<T = string, M = string, S = string>(
-  cKey: CacheKey<T, M, S>,
+export function pattern<Sub = string, Act = string, Obj = string>(
+  cKey: CacheKey<Sub, Act, Obj>,
   options: MemoryDriverOptions = DefaultMemoryDriverOptions,
 ): Pattern {
   options.sep = options.sep || SEP;
@@ -50,11 +52,11 @@ export function pattern<T = string, M = string, S = string>(
 
   const regex = (prop?: PropType): string => {
     if (prop && prop in cKey) {
-      const { main, scope } = typeof cKey[prop]!.val === 'string' ? parse(cKey[prop]!.val) : (cKey[prop]!.val as PropValue<M, S>);
+      const { main, scope } = typeof cKey[prop] === 'string' ? parse(cKey[prop]) : (cKey[prop]['val'] as PropValue);
 
       const val = scope ?? ((prop === 'subject' && NULL) || (prop === 'action' && ANY) || (prop === 'object' && ALL));
 
-      return `${main}${sep}${strict(val, { strict: cKey[prop]!.strict })}`;
+      return `${main}${sep}${strict(val, { strict: isStrict(prop, (cKey[prop] ?? {})['strict'] ?? cKey['strict']) })}`;
     } else return [ignore, ignore].join(sep);
   };
 
