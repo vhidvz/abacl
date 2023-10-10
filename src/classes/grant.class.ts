@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isInSubnet } from 'is-in-subnet';
-
 import { ControlOptions, Policy, Pattern, Time, TimeOptions, PropType, CacheKey } from '../types';
 import { accessibility, accumulate, filterByNotation, isCIDR, validate } from '../utils';
-import { POLICY_NOTATION, SEP, STRICT } from '../consts';
 import { key, parse, pattern } from '../driver';
+import { SEP, STRICT } from '../consts';
+
+import { isInSubnet } from 'is-in-subnet';
 
 const addOptions = <Sub = string, Act = string, Obj = string>(cKey: CacheKey<Sub, Act, Obj>) => {
   const patterns: Pattern[] = [];
@@ -42,9 +42,10 @@ export class Grant<Sub = string, Act = string, Obj = string> {
   update(policy: Policy<Sub, Act, Obj>) {
     validate(policy);
 
-    policy = filterByNotation(policy, POLICY_NOTATION);
+    const { action, object, subject, field, filter, location, time } = policy;
+    const times = time?.map(({ cron_exp, duration }) => ({ cron_exp, duration }));
 
-    this.present[key(policy)] = policy;
+    this.present[key(policy)] = { action, object, subject, field, filter, location, time: times };
   }
 
   exists(policy: Policy<Sub, Act, Obj>): boolean {

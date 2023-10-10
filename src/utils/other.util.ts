@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import parser from 'cron-parser';
-
 import { Time } from '../types';
+
+import parser from 'cron-parser';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Notation } = require('notation');

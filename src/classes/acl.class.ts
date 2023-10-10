@@ -1,9 +1,9 @@
 import { CacheInterface, ControlOptions, Policy, PropValue } from '../types';
-import { ALL, ANY, OK, POLICY_NOTATION, STRICT } from '../consts';
-import { filterByNotation, validate } from '../utils';
+import { ALL, ANY, OK, STRICT } from '../consts';
 import { Permission } from './permission.class';
 import { MemoryDriver } from '../driver';
 import { Grant } from './grant.class';
+import { validate } from '../utils';
 
 export interface CanOptions<Sub = string, Act = string, Obj = string> extends ControlOptions {
   callable?: (perm: Permission<Sub, Act, Obj>) => boolean | Promise<boolean>;
@@ -50,9 +50,10 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
   async update(policy: Policy<Sub, Act, Obj>): Promise<typeof OK> {
     validate(policy);
 
-    policy = filterByNotation(policy, POLICY_NOTATION, true);
+    const { action, object, subject, field, filter, location, time } = policy;
+    const times = time?.map(({ cron_exp, duration }) => ({ cron_exp, duration }));
 
-    return this.driver.set(policy);
+    return this.driver.set({ action, object, subject, field, filter, location, time: times });
   }
 
   async can(
