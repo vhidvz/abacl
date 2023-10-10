@@ -6,12 +6,10 @@ export type PropType = 'subject' | 'action' | 'object';
 export type PropValue<M = string, S = string> = { main: M; scope?: S };
 
 export type CacheKey<Sub = string, Act = string, Obj = string> = {
-  strict?: boolean | string; // true is default value
-
-  subject?: Sub | { val: Sub; strict?: boolean } | (PropValue & { strict?: boolean });
-  action?: Act | { val: Act; strict?: boolean } | (PropValue & { strict?: boolean });
-  object?: Obj | { val: Obj; strict?: boolean } | (PropValue & { strict?: boolean });
-};
+  subject?: Sub | (PropValue & ControlOptions);
+  action?: Act | (PropValue & ControlOptions);
+  object?: Obj | (PropValue & ControlOptions);
+} & ControlOptions;
 
 export interface CacheInterfaceOptions {
   sep?: string;
@@ -19,12 +17,12 @@ export interface CacheInterfaceOptions {
 }
 
 export interface CacheInterface<Sub = string, Act = string, Obj = string> {
-  clear(): Promise<typeof OK>;
+  clear(): typeof OK | Promise<typeof OK>;
 
-  get(cKey: CacheKey<Sub, Act, Obj>): Promise<Policy<Sub, Act, Obj>[]>;
+  get(cKey: CacheKey<Sub, Act, Obj>): Policy<Sub, Act, Obj>[] | Promise<Policy<Sub, Act, Obj>[]>;
 
-  set(policy: Policy<Sub, Act, Obj>): Promise<typeof OK>;
-  del(policy: Policy<Sub, Act, Obj>): Promise<typeof OK>;
+  set(policy: Policy<Sub, Act, Obj>): typeof OK | Promise<typeof OK>;
+  del(policy: Policy<Sub, Act, Obj>): typeof OK | Promise<typeof OK>;
 
-  has(policy: Policy<Sub, Act, Obj>, options?: ControlOptions): Promise<boolean>;
+  has(policy: Policy<Sub, Act, Obj>, options?: ControlOptions): boolean | Promise<boolean>;
 }

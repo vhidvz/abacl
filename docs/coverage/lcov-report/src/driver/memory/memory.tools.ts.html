@@ -30,9 +30,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.57% </span>
+                <span class="strong">91.66% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>31/35</span>
+                <span class='fraction'>33/36</span>
             </div>
         
             
@@ -133,7 +133,6 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1702x</span>
 <span class="cline-any cline-yes">1702x</span>
 <span class="cline-any cline-yes">1702x</span>
@@ -145,25 +144,26 @@
 <span class="cline-any cline-yes">1702x</span>
 <span class="cline-any cline-yes">1702x</span>
 <span class="cline-any cline-yes">1702x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
-<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">1702x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">478x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">478x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">104x</span>
 <span class="cline-any cline-yes">104x</span>
@@ -174,7 +174,7 @@
 <span class="cline-any cline-yes">104x</span>
 <span class="cline-any cline-yes">104x</span>
 <span class="cline-any cline-yes">104x</span>
-<span class="cline-any cline-yes">104x</span>
+<span class="cline-any cline-yes">202x</span>
 <span class="cline-any cline-yes">104x</span>
 <span class="cline-any cline-yes">104x</span>
 <span class="cline-any cline-yes">312x</span>
@@ -189,23 +189,23 @@
 <span class="cline-any cline-yes">104x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">104x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { CacheKey, ControlOptions, Pattern, Policy, PropType, PropValue } from '../../types';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { CacheKey, ControlOptions, Pattern, Policy, PropType, PropValue } from '../../types';
 import { DefaultMemoryDriverOptions, MemoryDriverOptions } from './memory.driver';
 import { ALL, ANY, NULL, SEP, STRICT } from '../../consts';
+import { isStrict } from '../../utils';
 &nbsp;
 export const memoryIgnore = (sep: string) =&gt; `[^${sep}][^${sep}]*`;
 &nbsp;
-export function parse&lt;T = string, M = string, S = string&gt;(
-  prop: T,
+export function parse&lt;Prop = string, Main = string, Scope = string&gt;(
+  prop: Prop,
   options: MemoryDriverOptions = DefaultMemoryDriverOptions,
-): PropValue&lt;M, S&gt; {
+): PropValue&lt;Main, Scope&gt; {
   options.sep = options.sep<span class="branch-0 cbranch-no" title="branch not covered" > || SEP;</span>
   const { sep, prefix } = options;
 &nbsp;
-  if (prefix) prop = String(prop).replace(prefix + sep, '') as T;
-  const [main, scope] = String(prop).split(sep) as [M, S];
+  if (prefix) prop = String(prop).replace(prefix + sep, '') as Prop;
+&nbsp;
+  const [main, scope] = String(prop).split(sep) as [Main, Scope];
   return { main, scope };
 }
 &nbsp;
@@ -216,9 +216,9 @@ export function key&lt;Sub = string, Act = string, Obj = string&gt;(
   options.sep = options.sep<span class="branch-0 cbranch-no" title="branch not covered" > || SEP;</span>
   const { sep, prefix } = options;
 &nbsp;
-  const subject = parse(polity.subject, options);
-  const action = parse(polity.action, options);
-  const object = parse(polity.object, options);
+  const subject = parse&lt;Sub&gt;(polity.subject, options);
+  const action = parse&lt;Act&gt;(polity.action, options);
+  const object = parse&lt;Obj&gt;(polity.object, options);
 &nbsp;
   const subject_key = `${subject.main}${sep}${subject.scope ?? NULL}`;
   const action_key = `${action.main}${sep}${action.scope ?? ANY}`;
@@ -228,24 +228,24 @@ export function key&lt;Sub = string, Act = string, Obj = string&gt;(
   else return [prefix, subject_key, action_key, object_key].join(sep);
 }
 &nbsp;
-export function pattern&lt;T = string, M = string, S = string&gt;(
-  cKey: CacheKey&lt;T, M, S&gt;,
+export function pattern&lt;Sub = string, Act = string, Obj = string&gt;(
+  cKey: CacheKey&lt;Sub, Act, Obj&gt;,
   options: MemoryDriverOptions = DefaultMemoryDriverOptions,
 ): Pattern {
   options.sep = options.sep<span class="branch-0 cbranch-no" title="branch not covered" > || SEP;</span>
   const { sep, prefix } = options;
 &nbsp;
   const ignore = memoryIgnore(sep);
-&nbsp;
-  const strict = &lt;T = string&gt;(prop: T, options?: ControlOptions) =&gt; (options<span class="branch-0 cbranch-no" title="branch not covered" >?.s</span>trict ?? STRICT ? prop : ignore);
+  const ignored = &lt;T = string&gt;(prop: PropType, scope: T, options: ControlOptions) =&gt;
+    isStrict(prop, options.strict ?? STRICT) ? scope : ignore;
 &nbsp;
   const regex = (prop?: PropType): string =&gt; {
     if (prop &amp;&amp; prop in cKey) {
-      const { main, scope } = typeof cKey[prop]!.val === 'string' ? parse(cKey[prop]!.val) : (cKey[prop]!.val as PropValue&lt;M, S&gt;);
+      const val = typeof cKey[prop] === 'string' ? parse(cKey[prop]) : (cKey[prop] as PropValue &amp; ControlOptions);
+      val.scope = val.scope ?? String((prop === 'subject' &amp;&amp; NULL) || (prop === 'action' &amp;&amp; ANY) || (prop === 'object' &amp;&amp; ALL));
 &nbsp;
-      const val = scope ?? ((prop === 'subject' &amp;&amp; NULL) || (prop === 'action' &amp;&amp; ANY) || (prop === 'object' &amp;&amp; ALL));
-&nbsp;
-      return `${main}${sep}${strict(val, { strict: cKey[prop]!.strict })}`;
+      const { main, scope } = val;
+      return `${main}${sep}${ignored(prop, scope, { strict: (val as ControlOptions).strict ?? cKey.strict })}`;
     } else return [ignore, ignore].join(sep);
   };
 &nbsp;
@@ -259,7 +259,7 @@ export function pattern&lt;T = string, M = string, S = string&gt;(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2023-09-26T16:37:35.017Z
+                at 2023-10-10T09:36:25.627Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

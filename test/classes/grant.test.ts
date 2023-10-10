@@ -26,10 +26,10 @@ describe('test grant class', () => {
   });
 
   it('should verify has pattern exists', () => {
-    expect(grant.has({ subject: { val: Role.Admin } })).toBeTruthy();
-    expect(grant.has({ subject: { val: { main: Role.Admin } } })).toBeTruthy();
+    expect(grant.has({ subject: Role.Admin })).toBeTruthy();
+    expect(grant.has({ subject: { main: Role.Admin } })).toBeTruthy();
 
-    expect(grant.has({ action: { val: ANY }, object: { val: ALL } })).toBeTruthy();
+    expect(grant.has({ action: ANY, object: ALL })).toBeTruthy();
   });
 
   it('should return grant scopes', () => {
@@ -38,28 +38,28 @@ describe('test grant class', () => {
     expect(grant.scopes('object')).toEqual(['published']);
     expect(grant.scopes('action')).toEqual(['own', 'shared']);
 
-    expect(grant.scopes('action', { subject: { val: 'user' }, action: { val: 'read', strict: true } })).toEqual([]);
-    expect(grant.scopes('action', { subject: { val: 'user' }, action: { val: 'read', strict: false } })).toEqual(['own', 'shared']);
+    expect(grant.scopes('action', { subject: 'user', action: 'read', strict: true })).toEqual([]);
+    expect(grant.scopes('action', { subject: 'user', action: 'read', strict: false })).toEqual(['own', 'shared']);
   });
 
   it('should return grant subjects', () => {
     expect(grant.subjects()).toEqual(['admin', 'guest', 'manager', 'user']);
 
-    expect(grant.subjects({ action: { val: 'read' } })).toEqual(['manager', 'guest']);
+    expect(grant.subjects({ action: 'read' })).toEqual(['manager', 'guest']);
 
-    expect(grant.subjects({ action: { val: 'read', strict: true } })).toEqual(['manager', 'guest']);
-    expect(grant.subjects({ action: { val: 'read', strict: false } })).toEqual(['manager', 'user', 'guest']);
+    expect(grant.subjects({ action: 'read', strict: true })).toEqual(['manager', 'guest']);
+    expect(grant.subjects({ action: 'read', strict: false })).toEqual(['manager', 'user', 'guest']);
   });
 
   it('should check time accessibility', () => {
     const positiveDate = new Date('Fri Jun 23 2023 10:07:34 GMT+0330 (Iran Standard Time)');
     const negativeDate = new Date('Fri Jun 23 2023 19:07:34 GMT+0330 (Iran Standard Time)');
 
-    expect(grant.time({}, { currentDate: positiveDate, tz: 'Asia/Tehran' })).toBeTruthy();
-    expect(grant.time({}, { currentDate: negativeDate, tz: 'Asia/Tehran' })).toBeFalsy();
+    expect(grant.time({ currentDate: positiveDate, tz: 'Asia/Tehran' })).toBeTruthy();
+    expect(grant.time({ currentDate: negativeDate, tz: 'Asia/Tehran' })).toBeFalsy();
 
-    expect(grant.time({ subject: { val: 'admin' } }, { currentDate: positiveDate, tz: 'Asia/Tehran' })).toBeTruthy();
-    expect(grant.time({ subject: { val: 'admin' } }, { currentDate: negativeDate, tz: 'Asia/Tehran' })).toBeTruthy();
+    expect(grant.time({ currentDate: positiveDate, tz: 'Asia/Tehran' }, { subject: 'admin' })).toBeTruthy();
+    expect(grant.time({ currentDate: negativeDate, tz: 'Asia/Tehran' }, { subject: 'admin' })).toBeTruthy();
   });
 
   it('should check location accessibility', () => {
@@ -71,9 +71,9 @@ describe('test grant class', () => {
     expect(grant.location(positiveIP0)).toBeTruthy();
     expect(grant.location(positiveIP1)).toBeTruthy();
 
-    expect(grant.location(negativeIP, { subject: { val: 'admin' } })).toBeTruthy();
-    expect(grant.location(positiveIP0, { subject: { val: 'admin' } })).toBeTruthy();
-    expect(grant.location(positiveIP1, { subject: { val: 'admin' } })).toBeTruthy();
+    expect(grant.location(negativeIP, { subject: 'admin' })).toBeTruthy();
+    expect(grant.location(positiveIP0, { subject: 'admin' })).toBeTruthy();
+    expect(grant.location(positiveIP1, { subject: 'admin' })).toBeTruthy();
   });
 
   it('should field input data', async () => {
@@ -92,21 +92,21 @@ describe('test grant class', () => {
       tags: ['tag'],
     });
 
-    expect(await grant.field(article, { subject: { val: 'user' } })).toEqual({
+    expect(await grant.field(article, { subject: 'user' })).toEqual({
       id: '5f4d1e2c-a7b2-40',
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
 
-    expect(await grant.field(article, { subject: { val: 'user' }, action: { val: 'update' } })).toEqual({
+    expect(await grant.field(article, { subject: 'user', action: 'update' })).toEqual({
       id: '5f4d1e2c-a7b2-40',
       owner: 'vhid.vz@gmail.com',
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
-    expect(await grant.field(article, { subject: { val: 'user' }, action: { val: 'update', strict: false } })).toEqual({
+    expect(await grant.field(article, { subject: 'user', action: 'update', strict: false })).toEqual({
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
@@ -129,21 +129,21 @@ describe('test grant class', () => {
       tags: ['tag'],
     });
 
-    expect(await grant.filter(article, { subject: { val: 'user' } })).toEqual({
+    expect(await grant.filter(article, { subject: 'user' })).toEqual({
       id: '5f4d1e2c-a7b2-40',
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
 
-    expect(await grant.filter(article, { subject: { val: 'user' }, action: { val: 'read' } })).toEqual({
+    expect(await grant.filter(article, { subject: 'user', action: 'read' })).toEqual({
       id: '5f4d1e2c-a7b2-40',
       owner: 'vhid.vz@gmail.com',
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],
     });
-    expect(await grant.filter(article, { subject: { val: 'user' }, action: { val: 'read', strict: false } })).toEqual({
+    expect(await grant.filter(article, { subject: 'user', action: 'read', strict: false })).toEqual({
       id: '5f4d1e2c-a7b2-40',
       title: 'sample title',
       content: 'sample content',

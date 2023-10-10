@@ -34,7 +34,7 @@ export function accessibility(time: Time, options?: { currentDate?: Date; tz?: s
   return currentDate >= prevDate.toDate() && currentDate < nextDate;
 }
 
-export function filterByNotation(data: any, notation: string[], deep_copy = true) {
+export function filterByNotation(data: any, notation: string[], deep_copy = false) {
   if (!notation.length) throw new Error('Notation should not empty');
 
   if (deep_copy) data = JSON.parse(JSON.stringify(data));

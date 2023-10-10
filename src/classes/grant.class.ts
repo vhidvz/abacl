@@ -8,11 +8,11 @@ import { key, parse, pattern } from '../driver';
 
 const addOptions = <Sub = string, Act = string, Obj = string>(cKey: CacheKey<Sub, Act, Obj>) => {
   const patterns: Pattern[] = [];
-  const { subject, action, object } = cKey;
+  const { subject, action, object, strict } = cKey;
 
-  if (subject) patterns.push(pattern({ subject }));
-  if (action) patterns.push(pattern({ action }));
-  if (object) patterns.push(pattern({ object }));
+  if (subject) patterns.push(pattern({ strict, subject }));
+  if (action) patterns.push(pattern({ strict, action }));
+  if (object) patterns.push(pattern({ strict, object }));
 
   return patterns;
 };
@@ -42,7 +42,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
   update(policy: Policy<Sub, Act, Obj>) {
     validate(policy);
 
-    policy = filterByNotation(policy, POLICY_NOTATION, false);
+    policy = filterByNotation(policy, POLICY_NOTATION);
 
     this.present[key(policy)] = policy;
   }
@@ -64,18 +64,18 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     return test(pattern(cKey));
   }
 
-  scopes<Scope = string>(type: PropType, cKey?: CacheKey<Sub, Act, Obj>): Scope[] {
+  scopes<S = string>(prop: PropType, cKey?: CacheKey<Sub, Act, Obj>): S[] {
     if (!cKey || !Object.keys(cKey).length) {
-      return [...new Set<Scope>(this.policies.map((p) => parse(p[type]).scope as Scope).filter((s) => !!s))];
+      return [...new Set<S>(this.policies.map((p) => parse(p[prop]).scope as S).filter((s) => !!s))];
     } else {
-      const add = (set: Set<Scope>, patterns: Pattern[]) => {
+      const add = (set: Set<S>, patterns: Pattern[]) => {
         this.policies
           .filter((p) => patterns.every((pattern) => pattern.test(key(p))))
-          .map((p) => parse(p[type]).scope as Scope)
+          .map((p) => parse(p[prop]).scope as S)
           .forEach((s) => s && set.add(s));
       };
 
-      const scopes = new Set<Scope>([]);
+      const scopes = new Set<S>([]);
       add(scopes, addOptions(cKey));
 
       return [...scopes];
@@ -96,7 +96,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     }
   }
 
-  time(cKey?: CacheKey<Sub, Act, Obj>, options?: TimeOptions): boolean {
+  time(options?: TimeOptions, cKey?: CacheKey<Sub, Act, Obj>): boolean {
     const times: Record<string, Time> = {};
 
     if (!cKey || !Object.keys(cKey).length) {
@@ -147,9 +147,9 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     }
   }
 
-  async field<Data>(
+  async field<Data = any>(
     data: any,
-    cKey?: CacheKey<Sub, Act, Obj> | (<Data>(data: Data) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
+    cKey?: CacheKey<Sub, Act, Obj> | ((data: any) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
   ): Promise<Data> {
     const notation = accumulate(...(await this.notations(this.policies, data, 'field', cKey)));
 
@@ -159,16 +159,16 @@ export class Grant<Sub = string, Act = string, Obj = string> {
         return Promise.all(
           data.map(async (item) => {
             const notation = accumulate(...(await this.notations(this.policies, item, 'field', cKey)));
-            return notation.length ? filterByNotation(item, notation, false) : item;
+            return notation.length ? filterByNotation(item, notation) : item;
           }),
         ) as Data;
-      } else return notation.length ? filterByNotation(data, notation, false) : data;
+      } else return notation.length ? filterByNotation(data, notation) : data;
     }
   }
 
-  async filter<Data>(
+  async filter<Data = any>(
     data: any,
-    cKey?: CacheKey<Sub, Act, Obj> | (<Data>(data: Data) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
+    cKey?: CacheKey<Sub, Act, Obj> | ((data: any) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
   ): Promise<Data> {
     const notation = accumulate(...(await this.notations(this.policies, data, 'filter', cKey)));
 
@@ -178,10 +178,10 @@ export class Grant<Sub = string, Act = string, Obj = string> {
         return Promise.all(
           data.map(async (item) => {
             const notation = accumulate(...(await this.notations(this.policies, item, 'field', cKey)));
-            return notation.length ? filterByNotation(item, notation, false) : item;
+            return notation.length ? filterByNotation(item, notation) : item;
           }),
         ) as Data;
-      } else return notation.length ? filterByNotation(data, notation, false) : data;
+      } else return notation.length ? filterByNotation(data, notation) : data;
     }
   }
 
@@ -189,7 +189,7 @@ export class Grant<Sub = string, Act = string, Obj = string> {
     policies: Policy<Sub, Act, Obj>[],
     data: any,
     type: 'filter' | 'field',
-    cKey?: CacheKey<Sub, Act, Obj> | (<Data>(data: Data) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
+    cKey?: CacheKey<Sub, Act, Obj> | ((data: any) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
   ) {
     const notations: string[][] = [];
     if (typeof cKey !== 'function' && (!cKey || !Object.keys(cKey).length)) {

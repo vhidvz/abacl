@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CacheKey, ControlOptions, Pattern, Policy, PropType, PropValue } from '../../types';
 import { DefaultMemoryDriverOptions, MemoryDriverOptions } from './memory.driver';
 import { ALL, ANY, NULL, SEP, STRICT } from '../../consts';
-import { isStrict } from 'utils';
+import { isStrict } from '../../utils';
 
 export const memoryIgnore = (sep: string) => `[^${sep}][^${sep}]*`;
 
@@ -47,16 +45,16 @@ export function pattern<Sub = string, Act = string, Obj = string>(
   const { sep, prefix } = options;
 
   const ignore = memoryIgnore(sep);
-
-  const strict = <T = string>(prop: T, options?: ControlOptions) => (options?.strict ?? STRICT ? prop : ignore);
+  const ignored = <T = string>(prop: PropType, scope: T, options: ControlOptions) =>
+    isStrict(prop, options.strict ?? STRICT) ? scope : ignore;
 
   const regex = (prop?: PropType): string => {
     if (prop && prop in cKey) {
-      const { main, scope } = typeof cKey[prop] === 'string' ? parse(cKey[prop]) : (cKey[prop]['val'] as PropValue);
+      const val = typeof cKey[prop] === 'string' ? parse(cKey[prop]) : (cKey[prop] as PropValue & ControlOptions);
+      val.scope = val.scope ?? String((prop === 'subject' && NULL) || (prop === 'action' && ANY) || (prop === 'object' && ALL));
 
-      const val = scope ?? ((prop === 'subject' && NULL) || (prop === 'action' && ANY) || (prop === 'object' && ALL));
-
-      return `${main}${sep}${strict(val, { strict: isStrict(prop, (cKey[prop] ?? {})['strict'] ?? cKey['strict']) })}`;
+      const { main, scope } = val;
+      return `${main}${sep}${ignored(prop, scope, { strict: (val as ControlOptions).strict ?? cKey.strict })}`;
     } else return [ignore, ignore].join(sep);
   };
 

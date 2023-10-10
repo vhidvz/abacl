@@ -9,15 +9,15 @@ export class MemoryDriver<Sub = string, Act = string, Obj = string> implements C
   protected present: Record<string, Policy<Sub, Act, Obj>> = {};
 
   constructor(protected options: MemoryDriverOptions = DefaultMemoryDriverOptions) {
-    options.sep = options.sep || SEP;
+    this.options.sep = options.sep || SEP;
   }
 
-  async clear(): Promise<typeof OK> {
+  clear(): typeof OK {
     this.present = {};
     return OK;
   }
 
-  async get(cKey: CacheKey<Sub, Act, Obj>): Promise<Policy<Sub, Act, Obj>[]> {
+  get(cKey: CacheKey<Sub, Act, Obj>): Policy<Sub, Act, Obj>[] {
     const p = pattern<Sub, Act, Obj>(cKey, this.options);
 
     const policies: Policy<Sub, Act, Obj>[] = [];
@@ -28,21 +28,21 @@ export class MemoryDriver<Sub = string, Act = string, Obj = string> implements C
     return policies;
   }
 
-  async set(policy: Policy<Sub, Act, Obj>): Promise<typeof OK> {
+  set(policy: Policy<Sub, Act, Obj>): typeof OK {
     this.present[key(policy, this.options)] = policy;
     return OK;
   }
 
-  async del(policy: Policy<Sub, Act, Obj>): Promise<typeof OK> {
+  del(policy: Policy<Sub, Act, Obj>): typeof OK {
     delete this.present[key(policy, this.options)];
     return OK;
   }
 
-  async has(policy: Policy<Sub, Act, Obj>): Promise<boolean> {
+  has(policy: Policy<Sub, Act, Obj>): boolean {
     return key(policy, this.options) in this.present;
   }
 
-  static build<Sub = string, Act = string, Obj = string>(options?: MemoryDriverOptions) {
+  static build<Sub = string, Act = string, Obj = string>(options: MemoryDriverOptions = DefaultMemoryDriverOptions) {
     return new MemoryDriver<Sub, Act, Obj>(options);
   }
 }

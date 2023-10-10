@@ -50,7 +50,7 @@ describe('test acl class', () => {
     };
 
     const createPermission = await acl.can([Role.Manager], 'create', 'article');
-    expect(await createPermission.field(article, () => ({ action: { val: 'create ' } }))).toEqual({
+    expect(await createPermission.field(article, () => ({ action: 'create ' }))).toEqual({
       id: '5f4d1e2c-a7b2-40',
       owner: 'vhid.vz@gmail.com',
       title: 'sample title',
@@ -59,7 +59,7 @@ describe('test acl class', () => {
     });
 
     const updatePermission = await acl.can([Role.Manager], 'update', 'article', { strict: false });
-    expect(await updatePermission.field(article, async () => ({ action: { val: 'update', strict: false } }))).toEqual({
+    expect(await updatePermission.field(article, async () => ({ action: 'update', strict: false }))).toEqual({
       title: 'sample title',
       content: 'sample content',
       tags: ['tag'],

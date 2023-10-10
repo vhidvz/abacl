@@ -1,33 +1,38 @@
-import { CacheInterface, ControlOptions, Policy } from '../types';
+import { CacheInterface, ControlOptions, Policy, PropValue } from '../types';
 import { ALL, ANY, OK, POLICY_NOTATION, STRICT } from '../consts';
-import { filterByNotation, isStrict, validate } from '../utils';
+import { filterByNotation, validate } from '../utils';
 import { Permission } from './permission.class';
 import { MemoryDriver } from '../driver';
 import { Grant } from './grant.class';
 
-export interface CanOptions<Sub = string, Act = string, Obj = string> {
-  strict?: boolean | string;
+export interface CanOptions<Sub = string, Act = string, Obj = string> extends ControlOptions {
   callable?: (perm: Permission<Sub, Act, Obj>) => boolean | Promise<boolean>;
 }
 
 export interface AccessControlOptions<Sub = string, Act = string, Obj = string> extends ControlOptions {
-  driver?: 'memory' | CacheInterface<Sub, Act, Obj> | (() => CacheInterface<Sub, Act, Obj>);
+  driver?:
+    | 'memory'
+    | CacheInterface<Sub, Act, Obj>
+    | (() => CacheInterface<Sub, Act, Obj> | Promise<CacheInterface<Sub, Act, Obj>>);
 }
 
 export class AccessControl<Sub = string, Act = string, Obj = string> {
-  protected driver: CacheInterface<Sub, Act, Obj>;
+  protected driver!: CacheInterface<Sub, Act, Obj>;
   protected readonly options: ControlOptions = {};
 
   constructor(policies?: Policy<Sub, Act, Obj>[], options?: AccessControlOptions<Sub, Act, Obj>) {
     const { strict, driver } = options ?? {};
 
+    this.setDriver(driver);
     this.options.strict = strict ?? STRICT;
 
+    if (policies?.length) policies.forEach((policy) => this.update(policy));
+  }
+
+  protected async setDriver(driver?: AccessControlOptions<Sub, Act, Obj>['driver']) {
     if (!driver || driver === 'memory') {
       this.driver = MemoryDriver.build<Sub, Act, Obj>();
-    } else this.driver = typeof driver === 'function' ? driver() : driver;
-
-    if (policies?.length) policies.forEach((policy) => this.update(policy));
+    } else this.driver = typeof driver === 'function' ? await driver() : driver;
   }
 
   async clear(): Promise<typeof OK> {
@@ -47,26 +52,25 @@ export class AccessControl<Sub = string, Act = string, Obj = string> {
 
     policy = filterByNotation(policy, POLICY_NOTATION, true);
 
-    return await this.driver.set(policy);
+    return this.driver.set(policy);
   }
 
-  async can(subjects: Sub[], action: Act, object: Obj, options?: CanOptions<Sub, Act, Obj>): Promise<Permission<Sub, Act, Obj>> {
+  async can(
+    subjects: (Sub | (PropValue & ControlOptions))[],
+    action: Act | (PropValue & ControlOptions),
+    object: Obj | (PropValue & ControlOptions),
+    options?: CanOptions<Sub, Act, Obj>,
+  ): Promise<Permission<Sub, Act, Obj>> {
     const strict = options?.strict ?? this.options.strict ?? STRICT;
 
     if (!subjects?.length) throw new Error('No subjects given');
 
-    const wrapSub = (prop: Sub) => ({ strict: isStrict('subject', strict), val: prop });
-    const wrapAct = (prop: Act) => ({ strict: isStrict('action', strict), val: prop });
-    const wrapObj = (prop: Obj) => ({ strict: isStrict('object', strict), val: prop });
+    const keys = subjects.map((subject) => ({ subject, action, object }));
+    keys.push(...subjects.map((subject) => ({ subject, action: ANY as Act, object })));
+    keys.push(...subjects.map((subject) => ({ subject, action, object: ALL as Obj })));
+    keys.push(...subjects.map((subject) => ({ subject, action: ANY as Act, object: ALL as Obj })));
 
-    const keys = subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(action), object: wrapObj(object) }));
-    keys.push(...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(ANY as Act), object: wrapObj(object) })));
-    keys.push(...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(action), object: wrapObj(ALL as Obj) })));
-    keys.push(
-      ...subjects.map((subject) => ({ subject: wrapSub(subject), action: wrapAct(ANY as Act), object: wrapObj(ALL as Obj) })),
-    );
-
-    const policies = (await Promise.all(keys.map((key) => this.driver.get(key)))).flat();
+    const policies = (await Promise.all(keys.map((key) => this.driver.get({ strict, ...key })))).flat();
 
     let granted = !!policies?.length;
     const grant = new Grant<Sub, Act, Obj>(policies, { strict });

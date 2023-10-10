@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">94.23% </span>
+                <span class="strong">94.28% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>196/208</span>
+                <span class='fraction'>198/210</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">86.36% </span>
+                <span class="strong">86.48% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>95/110</span>
+                <span class='fraction'>96/111</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">94.23% </span>
+                <span class="strong">94.28% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>196/208</span>
+                <span class='fraction'>198/210</span>
             </div>
         
             
@@ -271,7 +271,9 @@
 <a name='L206'></a><a href='#L206'>206</a>
 <a name='L207'></a><a href='#L207'>207</a>
 <a name='L208'></a><a href='#L208'>208</a>
-<a name='L209'></a><a href='#L209'>209</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -280,6 +282,8 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-yes">34x</span>
@@ -487,12 +491,14 @@ import { accessibility, accumulate, filterByNotation, isCIDR, validate } from '.
 import { POLICY_NOTATION, SEP, STRICT } from '../consts';
 import { key, parse, pattern } from '../driver';
 &nbsp;
-const addOptions = &lt;T = string, M = string, S = string&gt;(cKey: CacheKey&lt;T, M, S&gt;) =&gt; {
+const addOptions = &lt;Sub = string, Act = string, Obj = string&gt;(cKey: CacheKey&lt;Sub, Act, Obj&gt;) =&gt; {
   const patterns: Pattern[] = [];
-  const { subject, action, object } = cKey;
-  if (subject) patterns.push(pattern({ subject }));
-  if (action) patterns.push(pattern({ action }));
-  if (object) <span class="branch-0 cbranch-no" title="branch not covered" >patterns.push(pattern({ object }));</span>
+  const { subject, action, object, strict } = cKey;
+&nbsp;
+  if (subject) patterns.push(pattern({ strict, subject }));
+  if (action) patterns.push(pattern({ strict, action }));
+  if (object) <span class="branch-0 cbranch-no" title="branch not covered" >patterns.push(pattern({ strict, object }));</span>
+&nbsp;
   return patterns;
 };
 &nbsp;
@@ -521,7 +527,7 @@ export class Grant&lt;Sub = string, Act = string, Obj = string&gt; {
   update(policy: Policy&lt;Sub, Act, Obj&gt;) {
     validate(policy);
 &nbsp;
-    policy = filterByNotation(policy, POLICY_NOTATION, false);
+    policy = filterByNotation(policy, POLICY_NOTATION);
 &nbsp;
     this.present[key(policy)] = policy;
   }
@@ -534,7 +540,7 @@ export class Grant&lt;Sub = string, Act = string, Obj = string&gt; {
     return delete this.present[key(policy)];
   }
 &nbsp;
-  has&lt;T = string, M = string, S = string&gt;(cKey: CacheKey&lt;T, M, S&gt;): boolean {
+  has(cKey: CacheKey&lt;Sub, Act, Obj&gt;): boolean {
     if (!Object.keys(cKey).length) <span class="branch-0 cbranch-no" title="branch not covered" >throw new Error('Cache key is required');</span>
 &nbsp;
     const keys = Object.keys(this.present);
@@ -543,25 +549,25 @@ export class Grant&lt;Sub = string, Act = string, Obj = string&gt; {
     return test(pattern(cKey));
   }
 &nbsp;
-  scopes&lt;Scope = string, T = string, M = string, S = string&gt;(type: PropType, cKey?: CacheKey&lt;T, M, S&gt;): Scope[] {
+  scopes&lt;S = string&gt;(prop: PropType, cKey?: CacheKey&lt;Sub, Act, Obj&gt;): S[] {
     if (!cKey || !Object.keys(cKey).length) {
-      return [...new Set&lt;Scope&gt;(this.policies.map((p) =&gt; parse(p[type]).scope as Scope).filter((s) =&gt; !!s))];
+      return [...new Set&lt;S&gt;(this.policies.map((p) =&gt; parse(p[prop]).scope as S).filter((s) =&gt; !!s))];
     } else {
-      const add = (set: Set&lt;Scope&gt;, patterns: Pattern[]) =&gt; {
+      const add = (set: Set&lt;S&gt;, patterns: Pattern[]) =&gt; {
         this.policies
           .filter((p) =&gt; patterns.every((pattern) =&gt; pattern.test(key(p))))
-          .map((p) =&gt; parse(p[type]).scope as Scope)
+          .map((p) =&gt; parse(p[prop]).scope as S)
           .forEach((s) =&gt; s &amp;&amp; set.add(s));
       };
 &nbsp;
-      const scopes = new Set&lt;Scope&gt;([]);
+      const scopes = new Set&lt;S&gt;([]);
       add(scopes, addOptions(cKey));
 &nbsp;
       return [...scopes];
     }
   }
 &nbsp;
-  subjects&lt;T = string, M = string, S = string&gt;(cKey?: CacheKey&lt;T, M, S&gt;): Sub[] {
+  subjects(cKey?: CacheKey&lt;Sub, Act, Obj&gt;): Sub[] {
     if (!cKey || !Object.keys(cKey).length) return [...new Set&lt;Sub&gt;(this.policies.map((p) =&gt; p.subject))];
     else {
       const add = (set: Set&lt;Sub&gt;, patterns: Pattern[]) =&gt; {
@@ -575,7 +581,7 @@ export class Grant&lt;Sub = string, Act = string, Obj = string&gt; {
     }
   }
 &nbsp;
-  time&lt;T = string, M = string, S = string&gt;(cKey?: CacheKey&lt;T, M, S&gt;, options?: TimeOptions): boolean {
+  time(options?: TimeOptions, cKey?: CacheKey&lt;Sub, Act, Obj&gt;): boolean {
     const times: Record&lt;string, Time&gt; = {};
 &nbsp;
     if (!cKey || !Object.keys(cKey).length) {
@@ -597,7 +603,7 @@ export class Grant&lt;Sub = string, Act = string, Obj = string&gt; {
     else return Object.values(times).some((t) =&gt; accessibility(t, options));
   }
 &nbsp;
-  location&lt;T = string, M = string, S = string&gt;(ip: string, cKey?: CacheKey&lt;T, M, S&gt;): boolean {
+  location(ip: string, cKey?: CacheKey&lt;Sub, Act, Obj&gt;): boolean {
     const locations = new Set&lt;string&gt;([]);
 &nbsp;
     if (!cKey || !Object.keys(cKey).length) {
@@ -626,9 +632,9 @@ export class Grant&lt;Sub = string, Act = string, Obj = string&gt; {
     }
   }
 &nbsp;
-  async field&lt;Data, T = string, M = string, S = string&gt;(
+  async field&lt;Data = any&gt;(
     data: any,
-    cKey?: CacheKey&lt;T, M, S&gt; | (&lt;Data&gt;(data: Data) =&gt; CacheKey&lt;T, M, S&gt; | Promise&lt;CacheKey&lt;T, M, S&gt;&gt;),
+    cKey?: CacheKey&lt;Sub, Act, Obj&gt; | ((data: any) =&gt; CacheKey&lt;Sub, Act, Obj&gt; | Promise&lt;CacheKey&lt;Sub, Act, Obj&gt;&gt;),
   ): Promise&lt;Data&gt; {
     const notation = accumulate(...(await this.notations(this.policies, data, 'field', cKey)));
 &nbsp;
@@ -638,16 +644,16 @@ export class Grant&lt;Sub = string, Act = string, Obj = string&gt; {
 <span class="cstat-no" title="statement not covered" >        return Promise.all(</span>
 <span class="cstat-no" title="statement not covered" >          data.map(async (item) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            const notation = accumulate(...(await this.notations(this.policies, item, 'field', cKey)));</span>
-<span class="cstat-no" title="statement not covered" >            return notation.length ? filterByNotation(item, notation, false) : item;</span>
+<span class="cstat-no" title="statement not covered" >            return notation.length ? filterByNotation(item, notation) : item;</span>
 <span class="cstat-no" title="statement not covered" >          }),</span>
 <span class="cstat-no" title="statement not covered" >        ) as Data;</span>
-      } else return notation.length ? filterByNotation(data, notation, false) <span class="branch-0 cbranch-no" title="branch not covered" >: data;</span>
+      } else return notation.length ? filterByNotation(data, notation) <span class="branch-0 cbranch-no" title="branch not covered" >: data;</span>
     }
   }
 &nbsp;
-  async filter&lt;Data, T = string, M = string, S = string&gt;(
+  async filter&lt;Data = any&gt;(
     data: any,
-    cKey?: CacheKey&lt;T, M, S&gt; | (&lt;Data&gt;(data: Data) =&gt; CacheKey&lt;T, M, S&gt; | Promise&lt;CacheKey&lt;T, M, S&gt;&gt;),
+    cKey?: CacheKey&lt;Sub, Act, Obj&gt; | ((data: any) =&gt; CacheKey&lt;Sub, Act, Obj&gt; | Promise&lt;CacheKey&lt;Sub, Act, Obj&gt;&gt;),
   ): Promise&lt;Data&gt; {
     const notation = accumulate(...(await this.notations(this.policies, data, 'filter', cKey)));
 &nbsp;
@@ -657,18 +663,18 @@ export class Grant&lt;Sub = string, Act = string, Obj = string&gt; {
 <span class="cstat-no" title="statement not covered" >        return Promise.all(</span>
 <span class="cstat-no" title="statement not covered" >          data.map(async (item) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            const notation = accumulate(...(await this.notations(this.policies, item, 'field', cKey)));</span>
-<span class="cstat-no" title="statement not covered" >            return notation.length ? filterByNotation(item, notation, false) : item;</span>
+<span class="cstat-no" title="statement not covered" >            return notation.length ? filterByNotation(item, notation) : item;</span>
 <span class="cstat-no" title="statement not covered" >          }),</span>
 <span class="cstat-no" title="statement not covered" >        ) as Data;</span>
-      } else return notation.length ? filterByNotation(data, notation, false) <span class="branch-0 cbranch-no" title="branch not covered" >: data;</span>
+      } else return notation.length ? filterByNotation(data, notation) <span class="branch-0 cbranch-no" title="branch not covered" >: data;</span>
     }
   }
 &nbsp;
-  protected async notations&lt;T = string, M = string, S = string&gt;(
+  protected async notations(
     policies: Policy&lt;Sub, Act, Obj&gt;[],
     data: any,
     type: 'filter' | 'field',
-    cKey?: CacheKey&lt;T, M, S&gt; | (&lt;Data&gt;(data: Data) =&gt; CacheKey&lt;T, M, S&gt; | Promise&lt;CacheKey&lt;T, M, S&gt;&gt;),
+    cKey?: CacheKey&lt;Sub, Act, Obj&gt; | ((data: any) =&gt; CacheKey&lt;Sub, Act, Obj&gt; | Promise&lt;CacheKey&lt;Sub, Act, Obj&gt;&gt;),
   ) {
     const notations: string[][] = [];
     if (typeof cKey !== 'function' &amp;&amp; (!cKey || !Object.keys(cKey).length)) {
@@ -694,7 +700,7 @@ export class Grant&lt;Sub = string, Act = string, Obj = string&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2023-09-26T16:37:35.017Z
+                at 2023-10-10T09:36:25.627Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

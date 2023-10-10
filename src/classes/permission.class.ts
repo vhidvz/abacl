@@ -19,32 +19,32 @@ export class Permission<Sub = string, Act = string, Obj = string> {
     return this.grant.has(cKey);
   }
 
-  scopes<Scope = string>(type: PropType, cKey?: CacheKey<Sub, Act, Obj>): Scope[] {
-    return this.grant.scopes(type, cKey);
+  scopes<Scope = string>(prop: PropType, cKey?: CacheKey<Sub, Act, Obj>): Scope[] {
+    return this.grant.scopes(prop, cKey);
   }
 
   subjects(cKey?: CacheKey<Sub, Act, Obj>): Sub[] {
     return this.grant.subjects(cKey);
   }
 
-  time(cKey?: CacheKey<Sub, Act, Obj>, options?: TimeOptions): boolean {
-    return this.grant.time(cKey, options);
+  time(options?: TimeOptions, cKey?: CacheKey<Sub, Act, Obj>): boolean {
+    return this.grant.time(options, cKey);
   }
 
   location(ip: string, cKey?: CacheKey<Sub, Act, Obj>): boolean {
     return this.grant.location(ip, cKey);
   }
 
-  async field<Data>(
+  field<Data = any>(
     data: any,
-    cKey?: CacheKey<Sub, Act, Obj> | (<Data>(data: Data) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
+    cKey?: CacheKey<Sub, Act, Obj> | ((data: any) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
   ): Promise<Data> {
     return this.grant.field<Data>(data, cKey);
   }
 
-  async filter<Data>(
+  filter<Data = any>(
     data: any,
-    cKey?: CacheKey<Sub, Act, Obj> | (<Data>(data: Data) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
+    cKey?: CacheKey<Sub, Act, Obj> | ((data: any) => CacheKey<Sub, Act, Obj> | Promise<CacheKey<Sub, Act, Obj>>),
   ): Promise<Data> {
     return this.grant.filter<Data>(data, cKey);
   }
