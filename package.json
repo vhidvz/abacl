@@ -1,6 +1,6 @@
 {
   "name": "abacl",
-  "version": "8.0.3",
+  "version": "8.0.4",
   "description": "Attribute Based Access Control Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
