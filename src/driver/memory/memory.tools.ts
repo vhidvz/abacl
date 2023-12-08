@@ -49,7 +49,7 @@ export function pattern<Sub = string, Act = string, Obj = string>(
     isStrict(prop, options.strict ?? STRICT) ? scope : ignore;
 
   const regex = (prop?: PropType): string => {
-    if (prop && prop in cKey) {
+    if (prop && cKey[prop]) {
       const val = typeof cKey[prop] === 'string' ? parse(cKey[prop]) : (cKey[prop] as PropValue & ControlOptions);
       val.scope = val.scope ?? String((prop === 'subject' && NULL) || (prop === 'action' && ANY) || (prop === 'object' && ALL));
 
