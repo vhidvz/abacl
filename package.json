@@ -1,6 +1,6 @@
 {
   "name": "abacl",
-  "version": "8.0.10",
+  "version": "8.0.11",
   "description": "Attribute Based Access Control Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -63,7 +63,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "engines": {
-    "node": ">=20.x.x <22",
+    "node": ">=20.x.x <24",
     "npm": "~10.8.2"
   },
   "os": [
